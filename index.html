@@ -142,6 +142,32 @@ input[type="text"]:focus, textarea:focus, select:focus {
 textarea { resize: vertical; min-height: 60px; font-size: 14px; line-height: 1.4; }
 select option { background: var(--surface2); }
 
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--surface3);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid #0a0a0f;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid #0a0a0f;
+}
+
 /* Sector selector */
 .sector-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 
@@ -183,6 +209,20 @@ select option { background: var(--surface2); }
 
 .pos-btn:hover { border-color: var(--border-hover); color: var(--text); }
 .pos-btn.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+
+.format-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text2);
+  padding: 10px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.format-btn:hover { border-color: var(--border-hover); color: var(--text); }
+.format-btn.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
 
 /* Color swatches */
 .color-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -264,7 +304,6 @@ select option { background: var(--surface2); }
 .canvas-wrap {
   width: 100%;
   max-width: 320px;
-  aspect-ratio: 9/16;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 8px 40px rgba(0,0,0,0.5);
@@ -333,7 +372,15 @@ select option { background: var(--surface2); }
   <aside class="panel">
 
     <div class="field-group">
-      <label>1. ¿A qué te dedicas?</label>
+      <label>1. Formato</label>
+      <div class="position-grid" id="formatGrid" style="grid-template-columns: 1fr 1fr;">
+        <button class="format-btn selected" data-format="historia">Historia <span style="opacity:.65;font-weight:400;">· 9:16</span></button>
+        <button class="format-btn" data-format="publicacion">Publicación <span style="opacity:.65;font-weight:400;">· 4:5</span></button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>2. ¿A qué te dedicas?</label>
       <input type="text" id="sectorText" placeholder="Ej: peluquería, restaurante, tienda de ropa...">
       <div class="field-hint" id="sectorHint">Escribe tu actividad y elegimos el estilo de frases por ti.</div>
       <button type="button" class="link-btn" id="toggleSectorGrid">Prefiero elegir de una lista</button>
@@ -341,12 +388,12 @@ select option { background: var(--surface2); }
     </div>
 
     <div class="field-group">
-      <label>2. Nombre del negocio</label>
+      <label>3. Nombre del negocio</label>
       <input type="text" id="businessName" placeholder="Ej: Café Aurora" maxlength="40">
     </div>
 
     <div class="field-group">
-      <label>3. Tu foto</label>
+      <label>4. Tu foto</label>
       <div class="drop-zone" id="dropZone">
         <span class="icon">📷</span>
         Arrastra una imagen o haz clic para subirla
@@ -354,14 +401,20 @@ select option { background: var(--surface2); }
       <input type="file" id="imageInput" accept="image/*" style="display:none">
     </div>
 
+    <div class="field-group" id="zoomControl" style="display:none;">
+      <label>Encuadre de la foto</label>
+      <input type="range" id="zoomSlider" min="100" max="250" value="100" step="5">
+      <div class="field-hint">Arrastra la foto directamente sobre la vista previa para moverla.</div>
+    </div>
+
     <div class="field-group">
-      <label>4. Color del marco</label>
+      <label>5. Color del marco</label>
       <div class="color-row" id="colorRow"></div>
       <div class="field-hint">Tiñe la foto y el marco para que combinen.</div>
     </div>
 
     <div class="field-group">
-      <label>5. Dónde va el texto</label>
+      <label>6. Dónde va el texto</label>
       <div class="position-grid">
         <button class="pos-btn" data-pos="top">Arriba</button>
         <button class="pos-btn" data-pos="middle">Medio</button>
@@ -370,7 +423,7 @@ select option { background: var(--surface2); }
     </div>
 
     <div class="field-group">
-      <label>6. Tipografía</label>
+      <label>7. Tipografía</label>
       <select id="fontSelect"></select>
     </div>
 
@@ -411,6 +464,12 @@ select option { background: var(--surface2); }
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
+// ─── FORMATOS DISPONIBLES ───────────────────────────────────────────────────
+const FORMATS = {
+  historia: { width: 1080, height: 1920, label: 'Historia' },
+  publicacion: { width: 1080, height: 1350, label: 'Publicación' }
+};
+
 // ─── BANCO DE CONTENIDO POR SECTOR ──────────────────────────────────────────────
 const SECTORES = {
   gastronomia: {
@@ -773,6 +832,10 @@ const COLOR_SWATCHES = ['#d9714e', '#b98bb0', '#c8a96e', '#5590e0', '#55b87a', '
 
 // ─── ESTADO ─────────────────────────────────────────────────────────────────
 const state = {
+  format: 'historia',
+  photoScale: 1,
+  photoOffsetX: 0,
+  photoOffsetY: 0,
   sector: 'gastronomia',
   accentColor: SECTORES.gastronomia.accent,
   position: 'bottom',
@@ -876,6 +939,21 @@ function buildFontSelect() {
   sel.addEventListener('change', e => { state.fontKey = e.target.value; renderCanvas(); });
 }
 
+function applyFormat(key) {
+  state.format = key;
+  const f = FORMATS[key];
+  const canvas = document.getElementById('storyCanvas');
+  canvas.width = f.width;
+  canvas.height = f.height;
+  document.querySelector('.canvas-wrap').style.aspectRatio = `${f.width} / ${f.height}`;
+  document.querySelectorAll('#formatGrid .format-btn').forEach(b => b.classList.toggle('selected', b.dataset.format === key));
+  renderCanvas();
+}
+
+document.querySelectorAll('#formatGrid .format-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyFormat(btn.dataset.format));
+});
+
 document.querySelectorAll('.pos-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     state.position = btn.dataset.pos;
@@ -911,6 +989,12 @@ function handlePhotoFile(file) {
     const img = new Image();
     img.onload = () => {
       state.photoImg = img;
+      state.photoScale = 1;
+      state.photoOffsetX = 0;
+      state.photoOffsetY = 0;
+      document.getElementById('zoomSlider').value = 100;
+      document.getElementById('zoomControl').style.display = 'flex';
+      document.getElementById('storyCanvas').style.cursor = 'grab';
       dropZone.innerHTML = `<span class="icon">✓</span>Foto cargada · toca para cambiarla`;
       renderCanvas();
     };
@@ -918,6 +1002,11 @@ function handlePhotoFile(file) {
   };
   reader.readAsDataURL(file);
 }
+
+document.getElementById('zoomSlider').addEventListener('input', e => {
+  state.photoScale = Number(e.target.value) / 100;
+  renderCanvas();
+});
 
 // ─── BANCO DE FRASES: SELECCIÓN SIN REPETIR ────────────────────────────────
 function pickFromBank(type) {
@@ -934,7 +1023,7 @@ function pickFromBank(type) {
 }
 
 function fillTemplate(str) {
-  const name = document.getElementById('businessName').value.trim() || 'tu negocio';
+  const name = document.getElementById('businessName').value.trim() || 'nuestro negocio';
   return str.replace(/\{negocio\}/g, name);
 }
 
@@ -983,18 +1072,29 @@ function wrapLines(ctx, text, maxWidth) {
   return lines;
 }
 
+// Calcula el rectángulo de dibujo de la foto según el zoom y el desplazamiento actuales.
+// Además ajusta (clampa) el desplazamiento para que la foto siempre cubra todo el canvas.
+function getPhotoDrawRect(W, H) {
+  const img = state.photoImg;
+  const baseScale = Math.max(W / img.width, H / img.height);
+  const scale = baseScale * state.photoScale;
+  const dw = img.width * scale;
+  const dh = img.height * scale;
+
+  const maxOffsetX = Math.max(0, (dw - W) / 2);
+  const maxOffsetY = Math.max(0, (dh - H) / 2);
+  state.photoOffsetX = Math.min(maxOffsetX, Math.max(-maxOffsetX, state.photoOffsetX));
+  state.photoOffsetY = Math.min(maxOffsetY, Math.max(-maxOffsetY, state.photoOffsetY));
+
+  const dx = W / 2 - dw / 2 + state.photoOffsetX;
+  const dy = H / 2 - dh / 2 + state.photoOffsetY;
+  return { dw, dh, dx, dy };
+}
+
 function drawBackground(ctx, W, H) {
   if (state.photoImg) {
-    const img = state.photoImg;
-    const imgRatio = img.width / img.height;
-    const canvasRatio = W / H;
-    let sw, sh, sx, sy;
-    if (imgRatio > canvasRatio) {
-      sh = img.height; sw = sh * canvasRatio; sx = (img.width - sw) / 2; sy = 0;
-    } else {
-      sw = img.width; sh = sw / canvasRatio; sx = 0; sy = (img.height - sh) / 2;
-    }
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+    const r = getPhotoDrawRect(W, H);
+    ctx.drawImage(state.photoImg, r.dx, r.dy, r.dw, r.dh);
   } else {
     ctx.fillStyle = '#1a1a24';
     ctx.fillRect(0, 0, W, H);
@@ -1093,6 +1193,36 @@ function renderCanvas() {
   ctx.globalAlpha = 1;
 }
 
+// ─── ARRASTRAR LA FOTO PARA ENCUADRARLA ────────────────────────────────────
+const storyCanvasEl = document.getElementById('storyCanvas');
+storyCanvasEl.style.touchAction = 'none';
+let dragging = false, dragStart = null, startOffset = null;
+
+storyCanvasEl.addEventListener('pointerdown', e => {
+  if (!state.photoImg) return;
+  dragging = true;
+  dragStart = { x: e.clientX, y: e.clientY };
+  startOffset = { x: state.photoOffsetX, y: state.photoOffsetY };
+  storyCanvasEl.setPointerCapture(e.pointerId);
+  storyCanvasEl.style.cursor = 'grabbing';
+});
+
+storyCanvasEl.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const rect = storyCanvasEl.getBoundingClientRect();
+  const ratio = storyCanvasEl.width / rect.width;
+  state.photoOffsetX = startOffset.x + (e.clientX - dragStart.x) * ratio;
+  state.photoOffsetY = startOffset.y + (e.clientY - dragStart.y) * ratio;
+  renderCanvas();
+});
+
+['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+  storyCanvasEl.addEventListener(evt, () => {
+    dragging = false;
+    storyCanvasEl.style.cursor = state.photoImg ? 'grab' : 'default';
+  });
+});
+
 // ─── EXPORTAR Y COPIAR ──────────────────────────────────────────────────────
 function exportPNG() {
   renderCanvas();
@@ -1126,7 +1256,7 @@ function toast(msg, type = 'info') {
 buildSectorGrid();
 buildColorRow();
 buildFontSelect();
-renderCanvas();
+applyFormat('historia');
 document.fonts.ready.then(() => renderCanvas());
 
 // Registro del service worker (solo funciona si la app está alojada por http/https,
