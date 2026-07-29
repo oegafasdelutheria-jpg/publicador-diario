@@ -85,14 +85,18 @@ header {
 .app {
   display: grid;
   grid-template-columns: 380px 1fr;
+  grid-template-areas: "top canvas" "rest canvas";
   min-height: calc(100vh - 67px);
 }
 
 @media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; }
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-areas: "top" "canvas" "rest";
+  }
 }
 
-.panel {
+.panel-top, .panel-rest {
   border-right: 1px solid var(--border);
   background: var(--surface);
   padding: 22px;
@@ -101,8 +105,14 @@ header {
   gap: 20px;
   overflow-y: auto;
 }
+.panel-top { grid-area: top; padding-bottom: 0; }
+.panel-rest { grid-area: rest; padding-top: 0; }
+@media (max-width: 900px) {
+  .panel-top, .panel-rest { border-right: none; padding-bottom: 22px; padding-top: 22px; }
+}
 
-.preview {
+.canvas-block {
+  grid-area: canvas;
   padding: 32px;
   display: flex;
   flex-direction: column;
@@ -405,7 +415,7 @@ input[type="range"]::-moz-range-thumb {
 </header>
 
 <div class="app">
-  <aside class="panel">
+  <div class="panel-top">
 
     <div class="idea-card" id="ideaCard">
       <div class="idea-label" id="ideaFamilyLabel">HOY: PRODUCTO</div>
@@ -421,6 +431,16 @@ input[type="range"]::-moz-range-thumb {
       <div class="field-hint">Y si hoy no tienes tiempo, no te preocupes: la creamos igual, sin foto.</div>
       <input type="file" id="imageInput" accept="image/*" style="display:none">
     </div>
+
+  </div>
+
+  <div class="canvas-block">
+    <div class="canvas-wrap">
+      <canvas id="storyCanvas" width="1080" height="1920"></canvas>
+    </div>
+  </div>
+
+  <div class="panel-rest">
 
     <div class="field-group" id="zoomControl" style="display:none;">
       <label>Encuadre de la foto</label>
@@ -489,6 +509,12 @@ input[type="range"]::-moz-range-thumb {
           <input type="text" id="footerPhrase" placeholder="Ej: Pide ya · Reparto a domicilio">
         </div>
 
+        <div class="caption-box">
+          <label>Texto para el pie de foto (caption de Instagram)</label>
+          <textarea id="captionText" placeholder="Se genera junto con la imagen al tocar 'hazlo tú'"></textarea>
+          <button class="btn btn-ghost" onclick="copyCaption()">📋 Copiar caption</button>
+        </div>
+
         <button class="btn btn-ghost" onclick="renderCanvas()">Actualizar vista previa</button>
       </div>
 
@@ -496,19 +522,7 @@ input[type="range"]::-moz-range-thumb {
     <button class="btn btn-primary" id="createBtn">✦ Crear mi publicación</button>
     <button class="btn btn-primary" onclick="exportPNG()" style="background:linear-gradient(135deg,#55b87a,#2f8a52); color:#08130c;">⬇ Descargar imagen (PNG)</button>
 
-  </aside>
-
-  <main class="preview">
-    <div class="canvas-wrap">
-      <canvas id="storyCanvas" width="1080" height="1920"></canvas>
-    </div>
-
-    <div class="caption-box">
-      <label>Texto para el pie de foto (caption de Instagram)</label>
-      <textarea id="captionText" placeholder="Se genera junto con la imagen al tocar 'hazlo tú'"></textarea>
-      <button class="btn btn-ghost" onclick="copyCaption()">📋 Copiar caption</button>
-    </div>
-  </main>
+  </div>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
