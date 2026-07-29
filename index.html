@@ -340,6 +340,42 @@ input[type="range"]::-moz-range-thumb {
 }
 .link-btn:hover { opacity: 0.8; }
 
+/* Tarjeta de idea del día */
+.idea-card {
+  background: linear-gradient(160deg, var(--accent-dim), transparent);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.idea-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+}
+.idea-directive {
+  font-family: 'Playfair Display', serif;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.idea-photo {
+  font-size: 13px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+
+.personalize-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
 /* Toast */
 .toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 999; }
 .toast {
@@ -371,33 +407,18 @@ input[type="range"]::-moz-range-thumb {
 <div class="app">
   <aside class="panel">
 
-    <div class="field-group">
-      <label>1. Formato</label>
-      <div class="position-grid" id="formatGrid" style="grid-template-columns: 1fr 1fr;">
-        <button class="format-btn selected" data-format="historia">Historia <span style="opacity:.65;font-weight:400;">· 9:16</span></button>
-        <button class="format-btn" data-format="publicacion">Publicación <span style="opacity:.65;font-weight:400;">· 4:5</span></button>
-      </div>
+    <div class="idea-card" id="ideaCard">
+      <div class="idea-label" id="ideaFamilyLabel">HOY: PRODUCTO</div>
+      <div class="idea-directive" id="ideaDirective">Muestra tu producto o servicio de hoy.</div>
+      <div class="idea-photo" id="ideaPhotoHint">📷 Haz una foto de lo que tengas listo ahora mismo.</div>
     </div>
 
     <div class="field-group">
-      <label>2. ¿A qué te dedicas?</label>
-      <input type="text" id="sectorText" placeholder="Ej: peluquería, restaurante, tienda de ropa...">
-      <div class="field-hint" id="sectorHint">Escribe tu actividad y elegimos el estilo de frases por ti.</div>
-      <button type="button" class="link-btn" id="toggleSectorGrid">Prefiero elegir de una lista</button>
-      <div class="sector-grid" id="sectorGrid" style="display:none; margin-top:4px;"></div>
-    </div>
-
-    <div class="field-group">
-      <label>3. Nombre del negocio</label>
-      <input type="text" id="businessName" placeholder="Ej: Café Aurora" maxlength="40">
-    </div>
-
-    <div class="field-group">
-      <label>4. Tu foto</label>
       <div class="drop-zone" id="dropZone">
         <span class="icon">📷</span>
         Arrastra una imagen o haz clic para subirla
       </div>
+      <div class="field-hint">Y si hoy no tienes tiempo, no te preocupes: la creamos igual, sin foto.</div>
       <input type="file" id="imageInput" accept="image/*" style="display:none">
     </div>
 
@@ -407,43 +428,72 @@ input[type="range"]::-moz-range-thumb {
       <div class="field-hint">Arrastra la foto directamente sobre la vista previa para moverla.</div>
     </div>
 
-    <div class="field-group">
-      <label>5. Color del marco</label>
-      <div class="color-row" id="colorRow"></div>
-      <div class="field-hint">Tiñe la foto y el marco para que combinen.</div>
-    </div>
+    <div class="divider"></div>
+    <div class="personalize-body">
 
-    <div class="field-group">
-      <label>6. Dónde va el texto</label>
-      <div class="position-grid">
-        <button class="pos-btn" data-pos="top">Arriba</button>
-        <button class="pos-btn" data-pos="middle">Medio</button>
-        <button class="pos-btn selected" data-pos="bottom">Abajo</button>
+        <div class="field-group">
+          <label>Formato</label>
+          <div class="position-grid" id="formatGrid" style="grid-template-columns: 1fr 1fr;">
+            <button class="format-btn selected" data-format="historia">Historia <span style="opacity:.65;font-weight:400;">· 9:16</span></button>
+            <button class="format-btn" data-format="publicacion">Publicación <span style="opacity:.65;font-weight:400;">· 4:5</span></button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>¿A qué te dedicas?</label>
+          <input type="text" id="sectorText" placeholder="Ej: peluquería, restaurante, tienda de ropa...">
+          <div class="field-hint" id="sectorHint">Escribe tu actividad y elegimos el estilo de frases por ti.</div>
+          <button type="button" class="link-btn" id="toggleSectorGrid">Prefiero elegir de una lista</button>
+          <div class="sector-grid" id="sectorGrid" style="display:none; margin-top:4px;"></div>
+        </div>
+
+        <div class="field-group">
+          <label>Nombre del negocio</label>
+          <input type="text" id="businessName" placeholder="Ej: Café Aurora" maxlength="40">
+          <button type="button" class="link-btn" id="forgetProfile" style="display:none;">¿No es tu negocio? Olvidar estos datos</button>
+        </div>
+
+        <div class="field-group">
+          <label>Color del marco</label>
+          <div class="color-row" id="colorRow"></div>
+          <div class="field-hint">Tiñe la foto y el marco para que combinen.</div>
+        </div>
+
+        <div class="field-group">
+          <label>Color del texto</label>
+          <div class="color-row" id="textColorRow"></div>
+          <div class="field-hint">Automático elige blanco o negro según el fondo, para que siempre se lea bien.</div>
+        </div>
+
+        <div class="field-group">
+          <label>Dónde va el texto</label>
+          <div class="position-grid">
+            <button class="pos-btn" data-pos="top">Arriba</button>
+            <button class="pos-btn" data-pos="middle">Medio</button>
+            <button class="pos-btn selected" data-pos="bottom">Abajo</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Tipografía</label>
+          <select id="fontSelect"></select>
+        </div>
+
+        <div class="field-group">
+          <label>Frase principal</label>
+          <textarea id="mainPhrase" placeholder="Escribe tu frase o deja que el programa la elija por ti"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label>Frase fija al pie</label>
+          <input type="text" id="footerPhrase" placeholder="Ej: Pide ya · Reparto a domicilio">
+        </div>
+
+        <button class="btn btn-ghost" onclick="renderCanvas()">Actualizar vista previa</button>
       </div>
-    </div>
-
-    <div class="field-group">
-      <label>7. Tipografía</label>
-      <select id="fontSelect"></select>
-    </div>
 
     <div class="divider"></div>
-
-    <div class="field-group">
-      <label>Frase principal</label>
-      <textarea id="mainPhrase" placeholder="Escribe tu frase o deja que el programa la elija por ti"></textarea>
-    </div>
-
-    <div class="field-group">
-      <label>Frase fija al pie</label>
-      <input type="text" id="footerPhrase" placeholder="Ej: Pide ya · Reparto a domicilio">
-    </div>
-
-    <button class="btn btn-primary" onclick="generateAuto()">✦ Hoy no quiero hacerlo, hazlo tú</button>
-    <button class="btn btn-ghost" onclick="renderCanvas()">Actualizar vista previa</button>
-
-    <div class="divider"></div>
-
+    <button class="btn btn-primary" id="createBtn">✦ Crear mi publicación</button>
     <button class="btn btn-primary" onclick="exportPNG()" style="background:linear-gradient(135deg,#55b87a,#2f8a52); color:#08130c;">⬇ Descargar imagen (PNG)</button>
 
   </aside>
@@ -470,9 +520,39 @@ const FORMATS = {
   publicacion: { width: 1080, height: 1350, label: 'Publicación' }
 };
 
+// ─── FAMILIAS DE CONTENIDO ──────────────────────────────────────────────────
+// No reetiquetan las frases existentes (evita duplicar todo el banco); deciden
+// qué IDEA y qué FOTO sugerirle a la persona cada vez, rotando para que la
+// experiencia no se sienta repetitiva aunque el texto salga del mismo banco.
+const FAMILIES = [
+  { key: 'producto', label: 'Producto', directive: 'Muestra tu producto o servicio de hoy.', photoIdea: 'Haz una foto de lo que tengas listo ahora mismo.' },
+  { key: 'proceso', label: 'Proceso', directive: 'Enseña cómo lo haces.', photoIdea: 'Fotografía algo mientras lo estás preparando o trabajando en ello.' },
+  { key: 'persona', label: 'Persona', directive: 'Muestra quién está detrás del negocio.', photoIdea: 'Una foto tuya, o de quien esté hoy al frente.' },
+  { key: 'pregunta', label: 'Pregunta', directive: 'Interactúa con quien te sigue.', photoIdea: null },
+  { key: 'confianza', label: 'Confianza', directive: 'Recuerda por qué confían en ti.', photoIdea: 'Una foto de tu espacio, tu equipo o un trabajo terminado.' }
+];
+
+function getCurrentFamily() {
+  return FAMILIES[state.familyIndex % FAMILIES.length];
+}
+
+function updateIdeaCard() {
+  const f = getCurrentFamily();
+  document.getElementById('ideaFamilyLabel').textContent = 'HOY: ' + f.label.toUpperCase();
+  document.getElementById('ideaDirective').textContent = f.directive;
+  const photoHint = document.getElementById('ideaPhotoHint');
+  if (f.photoIdea) {
+    photoHint.style.display = 'block';
+    photoHint.textContent = '📷 ' + f.photoIdea;
+  } else {
+    photoHint.style.display = 'none';
+  }
+}
+
 // ─── BANCO DE CONTENIDO POR SECTOR ──────────────────────────────────────────────
 const SECTORES = {
   gastronomia: {
+    pattern: 'blobs',
     label: 'Gastronomía', icon: '🍽️', accent: '#d9714e',
     font: "'Fraunces', serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['restaurante','bar','cafeteria','café','cafe','comida','gastronomia','gastronómico','pizzeria','pizzería','hamburgueseria','hamburguesería','panaderia','panadería','pasteleria','pastelería','cocina','tapas','marisqueria','marisquería','asador','taberna','bistro','heladeria','heladería','food truck','catering','bocadillos','bocateria'],
@@ -491,7 +571,15 @@ const SECTORES = {
       "Ha vuelto lo que tanto pedíais",
       "Hecho como a ti te gusta",
       "Un clásico que nunca falla",
-      "Hoy el hambre gana"
+      "Hoy el hambre gana",
+      "Se prueba, se repite, se recomienda",
+      "El aroma ya llegó hasta la puerta",
+      "Receta de siempre, ganas de hoy",
+      "Mesa lista, falta poco",
+      "Lo simple, cuando está bien hecho, gana",
+      "Hoy la cocina no descansa",
+      "Para compartir o para ti solo, tú decides",
+      "Esto se sirve mejor caliente"
     ],
     footers: [
       "📍 {negocio} · Te esperamos",
@@ -500,7 +588,10 @@ const SECTORES = {
       "Reservas por DM",
       "Ven a probarlo",
       "Nueva carta disponible",
-      "Haz tu pedido ahora"
+      "Haz tu pedido ahora",
+      "Mesas disponibles hoy",
+      "Escríbenos y te guardamos sitio",
+      "Hoy también hacemos para llevar"
     ],
     captions: [
       "Hoy tenemos algo especial esperándote en {negocio}. Ven a probarlo o pídelo a domicilio, como prefieras.",
@@ -511,6 +602,7 @@ const SECTORES = {
     ]
   },
   belleza: {
+    pattern: 'rings',
     label: 'Belleza / Estética', icon: '💇', accent: '#b98bb0',
     font: "'Cormorant Garamond', serif", fontWeight: 700, fontStyle: 'italic',
     keywords: ['peluqueria','peluquería','salon','salón','estetica','estética','spa','uñas','manicura','pedicura','belleza','maquillaje','barberia','barbería','masajes','depilacion','depilación','centro de belleza','tattoo','tatuaje'],
@@ -526,7 +618,15 @@ const SECTORES = {
       "{negocio}: resultados que se notan",
       "Vuelve a sentirte tú",
       "La belleza también se entrena",
-      "Cuidarte no es un lujo, es un hábito"
+      "Cuidarte no es un lujo, es un hábito",
+      "Hoy toca mimarte un poco más",
+      "El brillo que buscabas está más cerca de lo que crees",
+      "En {negocio} cada detalle se piensa para ti",
+      "Renovarte también es cuidarte",
+      "La confianza también se peina",
+      "Hoy es un buen día para verte como te sientes por dentro",
+      "Pequeños cambios, gran diferencia",
+      "Tu cita de hoy puede cambiarte el día"
     ],
     footers: [
       "📍 {negocio} · Reserva tu cita",
@@ -534,7 +634,10 @@ const SECTORES = {
       "Plazas limitadas esta semana",
       "@{negocio} · Te esperamos",
       "Primera consulta sin cargo",
-      "Escríbenos y lo coordinamos"
+      "Escríbenos y lo coordinamos",
+      "Últimas citas de la semana",
+      "Consulta disponibilidad hoy",
+      "Te esperamos con todo listo"
     ],
     captions: [
       "En {negocio} creemos que cuidarte es un momento para ti, no una obligación más. Reserva tu cita esta semana.",
@@ -545,6 +648,7 @@ const SECTORES = {
     ]
   },
   moda: {
+    pattern: 'stripes',
     label: 'Moda y Comercio', icon: '👗', accent: '#c8a96e',
     font: "'Playfair Display', serif", fontWeight: 800, fontStyle: 'normal',
     keywords: ['ropa','moda','boutique','tienda de ropa','zapateria','zapatería','accesorios','joyeria','joyería','calzado','textil','indumentaria','tienda','retail','regalos','papeleria','papelería','libreria','librería','floristeria','floristería'],
@@ -559,7 +663,15 @@ const SECTORES = {
       "Lo simple también es elegante",
       "Renueva tu armario hoy",
       "Piezas que no vas a ver en todos lados",
-      "Se agota rápido, avisados quedáis"
+      "Se agota rápido, avisados quedáis",
+      "Cada temporada trae algo distinto",
+      "Vístete como eres, no solo para la ocasión",
+      "{negocio}: piezas con carácter propio",
+      "Lo básico también puede sorprender",
+      "Hoy tocan combinaciones nuevas",
+      "Encuentra tu estilo, no lo persigas",
+      "Menos es más, y hoy lo demostramos",
+      "Descubre lo último antes que nadie"
     ],
     footers: [
       "📍 {negocio} · Envíos disponibles",
@@ -567,7 +679,10 @@ const SECTORES = {
       "Pruébatelo antes de comprarlo",
       "@{negocio} · Todas las tallas",
       "Escríbenos por tu talla",
-      "Pago a plazos disponible"
+      "Pago a plazos disponible",
+      "Últimas unidades disponibles",
+      "Cambios y devoluciones fáciles",
+      "Visítanos o pide por DM"
     ],
     captions: [
       "Renovamos la tienda con piezas pensadas para el día a día. Pasa por {negocio} o escríbenos para coordinar el envío.",
@@ -578,6 +693,7 @@ const SECTORES = {
     ]
   },
   salud: {
+    pattern: 'waves',
     label: 'Salud y Bienestar', icon: '🧘', accent: '#6ba58a',
     font: "'Fraunces', serif", fontWeight: 600, fontStyle: 'normal',
     keywords: ['fisioterapia','fisio','clinica','clínica','gimnasio','entrenador','entrenadora','personal trainer','nutricion','nutrición','yoga','pilates','psicologia','psicología','osteopatia','osteopatía','bienestar','salud','terapia','rehabilitacion','rehabilitación'],
@@ -591,7 +707,15 @@ const SECTORES = {
       "{negocio}: resultados que se sienten",
       "Tu cuerpo te lo va a agradecer",
       "La constancia también se acompaña",
-      "En {negocio} empezamos donde tú estás"
+      "En {negocio} empezamos donde tú estás",
+      "Hoy también cuenta como avance",
+      "Tu bienestar no espera al lunes",
+      "En {negocio} cada sesión suma",
+      "Escuchar al cuerpo también es cuidarlo",
+      "Un paso más cerca de sentirte mejor",
+      "Hoy puede ser el día que retomes esto",
+      "El progreso no siempre se ve, pero se siente",
+      "Date el espacio que necesitas hoy"
     ],
     footers: [
       "📍 {negocio} · Pide tu cita",
@@ -599,7 +723,10 @@ const SECTORES = {
       "Plazas limitadas esta semana",
       "Escríbenos por WhatsApp",
       "Planes disponibles este mes",
-      "Te acompañamos en el proceso"
+      "Te acompañamos en el proceso",
+      "Consulta disponibilidad hoy",
+      "Empieza cuando estés listo",
+      "Sesiones individuales y en grupo"
     ],
     captions: [
       "En {negocio} creemos que cuidarte no debería ser complicado. Escríbenos y vemos cómo podemos ayudarte.",
@@ -610,6 +737,7 @@ const SECTORES = {
     ]
   },
   profesionales: {
+    pattern: 'grid',
     label: 'Servicios Profesionales', icon: '💼', accent: '#5590c9',
     font: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['asesoria','asesoría','abogado','abogada','gestoria','gestoría','contable','consultoria','consultoría','notario','notaria','asesor','asesora','despacho','fiscal','laboral','juridico','jurídico'],
@@ -621,7 +749,13 @@ const SECTORES = {
       "Hoy es un buen día para poner esto en orden",
       "Te acompañamos en cada paso",
       "En {negocio} hablamos claro, sin tecnicismos",
-      "Resolvemos lo que a ti te quita el sueño"
+      "Resolvemos lo que a ti te quita el sueño",
+      "Un trámite menos en tu lista",
+      "En {negocio} nos ocupamos, tú sigues con lo tuyo",
+      "La tranquilidad también se gestiona",
+      "Hoy es buen momento para preguntarnos esa duda",
+      "Claridad primero, papeles después",
+      "En {negocio} no hay letra pequeña"
     ],
     footers: [
       "📍 {negocio} · Primera consulta gratuita",
@@ -629,7 +763,9 @@ const SECTORES = {
       "Respuesta en 24 horas",
       "Pide cita sin compromiso",
       "Te asesoramos antes de decidir",
-      "Contacta con nosotros hoy"
+      "Contacta con nosotros hoy",
+      "Consulta tu caso hoy mismo",
+      "Atención también online"
     ],
     captions: [
       "En {negocio} nos encargamos de que no tengas que preocuparte por el papeleo. Escríbenos y lo vemos juntos.",
@@ -640,6 +776,7 @@ const SECTORES = {
     ]
   },
   hogar: {
+    pattern: 'stripes',
     label: 'Hogar y Reformas', icon: '🔧', accent: '#c9863b',
     font: "'DM Sans', sans-serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['electricista','fontanero','fontaneria','fontanería','pintor','reforma','reformas','carpintero','carpinteria','carpintería','cerrajero','albañil','construccion','construcción','instalador','climatizacion','climatización','obra'],
@@ -651,7 +788,13 @@ const SECTORES = {
       "Puntualidad y garantía en cada trabajo",
       "En {negocio} cuidamos hasta el último detalle",
       "Reformas y reparaciones sin dolores de cabeza",
-      "Hoy es un buen día para arreglar eso"
+      "Hoy es un buen día para arreglar eso",
+      "Lo que hoy arreglamos, mañana ni se nota",
+      "En {negocio} cumplimos lo que prometemos",
+      "Ese proyecto pendiente puede empezar hoy",
+      "Manos expertas, resultados que se ven",
+      "Presupuesto claro antes de empezar",
+      "En {negocio} no dejamos nada a medias"
     ],
     footers: [
       "📍 {negocio} · Presupuesto gratis",
@@ -659,7 +802,9 @@ const SECTORES = {
       "Llámanos o escríbenos por WhatsApp",
       "Trabajo garantizado",
       "Urgencias atendidas hoy",
-      "Pide tu presupuesto sin compromiso"
+      "Pide tu presupuesto sin compromiso",
+      "Servicio a domicilio",
+      "Consulta disponibilidad ahora"
     ],
     captions: [
       "En {negocio} sabemos que estas cosas no pueden esperar. Escríbenos y te damos presupuesto hoy mismo.",
@@ -670,6 +815,7 @@ const SECTORES = {
     ]
   },
   mascotas: {
+    pattern: 'dots',
     label: 'Mascotas', icon: '🐾', accent: '#a67c52',
     font: "'Fraunces', serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['veterinaria','veterinario','peluqueria canina','peluquería canina','mascota','mascotas','perro','perros','gato','gatos','petshop','tienda de animales','adiestrador','adiestramiento','residencia canina'],
@@ -681,7 +827,13 @@ const SECTORES = {
       "Hoy toca mimar un poco más",
       "En {negocio} lo tratamos como de la familia",
       "Salud, cariño y buenos cuidados en {negocio}",
-      "Porque ellos también se merecen lo mejor"
+      "Porque ellos también se merecen lo mejor",
+      "Una cola moviéndose es la mejor recompensa",
+      "En {negocio} cada visita es con cariño",
+      "Hoy también toca cuidar a quien no habla pero lo dice todo",
+      "Prevenir es cuidar, y hoy es un buen día",
+      "En {negocio} lo tratamos como si fuera nuestro",
+      "Tu compañero también merece su momento"
     ],
     footers: [
       "📍 {negocio} · Pide cita",
@@ -689,7 +841,9 @@ const SECTORES = {
       "Escríbenos por WhatsApp",
       "Primera consulta con descuento",
       "Disponibilidad esta semana",
-      "Te esperamos en {negocio}"
+      "Te esperamos en {negocio}",
+      "Consulta disponibilidad hoy",
+      "Atención también los fines de semana"
     ],
     captions: [
       "En {negocio} cuidamos de tu mascota como si fuera nuestra. Pide cita esta semana.",
@@ -700,6 +854,7 @@ const SECTORES = {
     ]
   },
   educacion: {
+    pattern: 'grid',
     label: 'Educación', icon: '📚', accent: '#7a6bc9',
     font: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['academia','clases particulares','profesor','profesora','autoescuela','formacion','formación','curso','cursos','idiomas','ingles','inglés','refuerzo escolar','oposiciones','tutor','tutoria','tutoría'],
@@ -711,7 +866,13 @@ const SECTORES = {
       "Hoy es un buen día para empezar",
       "En {negocio} explicamos hasta que se entienda de verdad",
       "Refuerza lo que necesites, cuando lo necesites",
-      "Prepárate con quienes ya lo han conseguido"
+      "Prepárate con quienes ya lo han conseguido",
+      "Cada duda resuelta es un paso más",
+      "En {negocio} el progreso se nota clase a clase",
+      "Aprender bien también da tranquilidad",
+      "Hoy puede ser el día que le pierdas el miedo a esto",
+      "En {negocio} nadie se queda con la duda",
+      "Constancia, método y paciencia: así trabajamos"
     ],
     footers: [
       "📍 {negocio} · Plazas limitadas",
@@ -719,7 +880,9 @@ const SECTORES = {
       "Escríbenos para más información",
       "Grupos reducidos disponibles",
       "Empieza cuando quieras",
-      "Consulta horarios disponibles"
+      "Consulta horarios disponibles",
+      "Clases online y presenciales",
+      "Primera clase sin compromiso"
     ],
     captions: [
       "En {negocio} creemos que aprender no tiene por qué ser un drama. Escríbenos y te contamos cómo trabajamos.",
@@ -730,6 +893,7 @@ const SECTORES = {
     ]
   },
   automocion: {
+    pattern: 'stripes',
     label: 'Automoción', icon: '🚗', accent: '#4a7ba6',
     font: "'DM Sans', sans-serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['taller','mecanico','mecánico','coches','neumaticos','neumáticos','lavado de coches','chapa y pintura','revision','revisión','itv','automocion','automoción','recambios'],
@@ -740,7 +904,13 @@ const SECTORES = {
       "Ese ruido raro, hoy lo revisamos",
       "Puntualidad y garantía en cada reparación",
       "En {negocio} cuidamos tu coche como si fuera nuestro",
-      "Prepara tu coche antes del viaje"
+      "Prepara tu coche antes del viaje",
+      "Ese detalle que ibas dejando pasar, hoy lo revisamos",
+      "En {negocio} nada se hace a medias",
+      "Seguridad primero, siempre",
+      "Revisar a tiempo sale más barato que reparar tarde",
+      "Diagnóstico honesto, sin vender de más",
+      "Tu coche también merece un buen mantenimiento"
     ],
     footers: [
       "📍 {negocio} · Presupuesto sin compromiso",
@@ -748,7 +918,9 @@ const SECTORES = {
       "Recogemos tu coche si lo necesitas",
       "Trabajo garantizado",
       "Escríbenos por WhatsApp",
-      "Disponibilidad esta semana"
+      "Disponibilidad esta semana",
+      "Revisión express disponible",
+      "Consulta sin compromiso"
     ],
     captions: [
       "En {negocio} revisamos tu coche a fondo antes de que el problema vaya a más. Pide cita esta semana.",
@@ -759,6 +931,7 @@ const SECTORES = {
     ]
   },
   eventos: {
+    pattern: 'dots',
     label: 'Eventos y Creatividad', icon: '📷', accent: '#c95f8f',
     font: "'Cormorant Garamond', serif", fontWeight: 700, fontStyle: 'italic',
     keywords: ['fotografia','fotografía','fotografo','fotógrafo','diseño','decoracion','decoración','floristeria','floristería','eventos','bodas','musica','música','dj','videografo','videógrafo','wedding planner'],
@@ -769,7 +942,13 @@ const SECTORES = {
       "{negocio}: los detalles que hacen la diferencia",
       "Hoy es un buen día para planear ese momento especial",
       "En {negocio} cuidamos cada detalle contigo",
-      "Momentos que se recuerdan, no solo se viven"
+      "Momentos que se recuerdan, no solo se viven",
+      "Lo bonito también se planea con tiempo",
+      "En {negocio} cada proyecto es único",
+      "Ese día que imaginas, lo hacemos real",
+      "Las mejores ideas empiezan con una conversación",
+      "En {negocio} no dejamos nada librado al azar",
+      "Guardamos los detalles que tú ni notas"
     ],
     footers: [
       "📍 {negocio} · Consulta disponibilidad",
@@ -777,7 +956,9 @@ const SECTORES = {
       "Escríbenos para presupuesto",
       "Agenda limitada este mes",
       "Portfolio disponible bajo pedido",
-      "Hablemos de tu proyecto"
+      "Hablemos de tu proyecto",
+      "Fechas disponibles este trimestre",
+      "Primera reunión sin compromiso"
     ],
     captions: [
       "En {negocio} nos encanta convertir un buen momento en algo que se pueda recordar siempre. Escríbenos.",
@@ -788,6 +969,7 @@ const SECTORES = {
     ]
   },
   general: {
+    pattern: 'blobs',
     label: 'General', icon: '🏪', accent: '#c8a96e',
     font: "'DM Sans', sans-serif", fontWeight: 700, fontStyle: 'normal',
     openers: [
@@ -800,7 +982,13 @@ const SECTORES = {
       "Hoy tenemos novedades para contarte",
       "{negocio} está aquí para ayudarte",
       "Cada día trabajamos para darte lo mejor",
-      "Esto es lo que te estábamos preparando"
+      "Esto es lo que te estábamos preparando",
+      "Hoy queremos contarte algo nuevo",
+      "En {negocio} cada cliente importa de verdad",
+      "Seguimos aquí, haciendo las cosas bien",
+      "Gracias por acompañarnos un día más",
+      "Lo de siempre, con el cuidado de siempre",
+      "En {negocio} las cosas se hacen con ganas"
     ],
     footers: [
       "📍 {negocio} · Contáctanos",
@@ -808,7 +996,9 @@ const SECTORES = {
       "Síguenos para más novedades",
       "Estamos para ayudarte",
       "Consulta disponibilidad",
-      "Hablemos por DM"
+      "Hablemos por DM",
+      "Escríbenos, respondemos rápido",
+      "Consulta sin compromiso"
     ],
     captions: [
       "En {negocio} seguimos trabajando cada día para ofrecerte lo mejor. Escríbenos si tienes alguna pregunta.",
@@ -833,11 +1023,14 @@ const COLOR_SWATCHES = ['#d9714e', '#b98bb0', '#c8a96e', '#5590e0', '#55b87a', '
 // ─── ESTADO ─────────────────────────────────────────────────────────────────
 const state = {
   format: 'historia',
+  familyIndex: 0,
   photoScale: 1,
   photoOffsetX: 0,
   photoOffsetY: 0,
-  sector: 'gastronomia',
-  accentColor: SECTORES.gastronomia.accent,
+  sector: 'general',
+  accentColor: SECTORES.general.accent,
+  textColorMode: 'auto',
+  customTextColor: '#ffffff',
   position: 'bottom',
   fontKey: 'auto',
   photoImg: null,
@@ -861,7 +1054,7 @@ function selectSector(key, opts = {}) {
   state.sector = key;
   state.accentColor = SECTORES[key].accent;
   document.querySelectorAll('.sector-btn').forEach(b => b.classList.toggle('selected', b.dataset.sector === key));
-  document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('selected', s.dataset.color.toLowerCase() === state.accentColor.toLowerCase()));
+  document.querySelectorAll('#colorRow .swatch').forEach(s => s.classList.toggle('selected', s.dataset.color.toLowerCase() === state.accentColor.toLowerCase()));
   if (!opts.silent) renderCanvas();
 }
 
@@ -899,6 +1092,7 @@ document.getElementById('sectorText').addEventListener('input', e => {
     const hint = document.getElementById('sectorHint');
     if (!text.trim()) {
       hint.textContent = 'Escribe tu actividad y elegimos el estilo de frases por ti.';
+      saveProfile();
       return;
     }
     const match = detectSector(text);
@@ -911,6 +1105,7 @@ document.getElementById('sectorText').addEventListener('input', e => {
       sectorGridEl.style.display = 'grid';
       document.getElementById('toggleSectorGrid').textContent = 'Ocultar la lista';
     }
+    saveProfile();
   }, 400);
 });
 
@@ -924,19 +1119,48 @@ function buildColorRow() {
       row.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
       sw.classList.add('selected');
       renderCanvas();
+      saveProfile();
     });
   });
   document.getElementById('customColor').addEventListener('input', e => {
     state.accentColor = e.target.value;
     row.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
     renderCanvas();
+    saveProfile();
+  });
+}
+
+function buildTextColorRow() {
+  const row = document.getElementById('textColorRow');
+  const modeSelected = m => state.textColorMode === m ? 'selected' : '';
+  row.innerHTML = `
+    <button type="button" class="format-btn ${modeSelected('auto')}" data-textmode="auto" style="padding:8px 12px;">Automático</button>
+    <div class="swatch ${modeSelected('white')}" data-textmode="white" style="background:#ffffff; border:1px solid var(--border-hover);"></div>
+    <div class="swatch ${modeSelected('black')}" data-textmode="black" style="background:#0a0a0f;"></div>
+    <input type="color" class="color-custom" id="customTextColor" value="${state.customTextColor}">
+  `;
+  row.querySelectorAll('[data-textmode]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.textColorMode = el.dataset.textmode;
+      row.querySelectorAll('[data-textmode]').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+      renderCanvas();
+      saveProfile();
+    });
+  });
+  document.getElementById('customTextColor').addEventListener('input', e => {
+    state.customTextColor = e.target.value;
+    state.textColorMode = 'custom';
+    row.querySelectorAll('[data-textmode]').forEach(s => s.classList.remove('selected'));
+    renderCanvas();
+    saveProfile();
   });
 }
 
 function buildFontSelect() {
   const sel = document.getElementById('fontSelect');
   sel.innerHTML = FONT_OPTIONS.map(f => `<option value="${f.key}">${f.label}</option>`).join('');
-  sel.addEventListener('change', e => { state.fontKey = e.target.value; renderCanvas(); });
+  sel.addEventListener('change', e => { state.fontKey = e.target.value; renderCanvas(); saveProfile(); });
 }
 
 function applyFormat(key) {
@@ -951,7 +1175,7 @@ function applyFormat(key) {
 }
 
 document.querySelectorAll('#formatGrid .format-btn').forEach(btn => {
-  btn.addEventListener('click', () => applyFormat(btn.dataset.format));
+  btn.addEventListener('click', () => { applyFormat(btn.dataset.format); saveProfile(); });
 });
 
 document.querySelectorAll('.pos-btn').forEach(btn => {
@@ -960,10 +1184,11 @@ document.querySelectorAll('.pos-btn').forEach(btn => {
     document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     renderCanvas();
+    saveProfile();
   });
 });
 
-document.getElementById('businessName').addEventListener('input', renderCanvas);
+document.getElementById('businessName').addEventListener('input', () => { renderCanvas(); saveProfile(); });
 document.getElementById('mainPhrase').addEventListener('input', renderCanvas);
 document.getElementById('footerPhrase').addEventListener('input', renderCanvas);
 
@@ -1036,7 +1261,12 @@ function generateAuto() {
   document.getElementById('captionText').value = caption;
   renderCanvas();
   toast('Publicación de hoy lista ✦', 'success');
+  state.familyIndex = (state.familyIndex + 1) % FAMILIES.length;
+  updateIdeaCard();
+  saveProfile();
 }
+
+document.getElementById('createBtn').addEventListener('click', generateAuto);
 
 // ─── DIBUJO DEL CANVAS ──────────────────────────────────────────────────────
 function hexToRgb(hex) {
@@ -1053,6 +1283,112 @@ function getContrastText(hex) {
   const { r, g, b } = hexToRgb(hex);
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return luminance > 0.6 ? '#0a0a0f' : '#ffffff';
+}
+
+function shadeColor(hex, percent) {
+  const { r, g, b } = hexToRgb(hex);
+  const amt = Math.round(2.55 * percent);
+  const clamp = v => Math.min(255, Math.max(0, v));
+  return `rgb(${clamp(r + amt)},${clamp(g + amt)},${clamp(b + amt)})`;
+}
+
+// Dibuja un patrón decorativo sutil sobre el degradado, según el estilo del sector.
+// Todo con matemática fija (sin Math.random) para que no "salte" entre reprocesos.
+function drawPattern(ctx, W, H, pattern) {
+  switch (pattern) {
+    case 'blobs': {
+      const blobs = [[0.2, 0.16, 0.34], [0.86, 0.28, 0.28], [0.14, 0.82, 0.32], [0.78, 0.88, 0.26]];
+      blobs.forEach(([bx, by, br]) => {
+        const r = W * br;
+        const g = ctx.createRadialGradient(W * bx, H * by, 0, W * bx, H * by, r);
+        g.addColorStop(0, 'rgba(255,255,255,0.16)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(W * bx, H * by, r, 0, Math.PI * 2); ctx.fill();
+      });
+      break;
+    }
+    case 'rings': {
+      const centers = [[0.24, 0.20], [0.80, 0.62], [0.30, 0.86]];
+      centers.forEach(([cx, cy]) => {
+        for (let k = 0; k < 3; k++) {
+          ctx.beginPath();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = `rgba(255,255,255,${0.18 - k * 0.045})`;
+          ctx.arc(W * cx, H * cy, W * (0.10 + k * 0.06), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      });
+      break;
+    }
+    case 'stripes': {
+      ctx.save();
+      ctx.translate(W / 2, H / 2); ctx.rotate(-0.35); ctx.translate(-W / 2, -H / 2);
+      const gap = W * 0.12;
+      ctx.fillStyle = 'rgba(255,255,255,0.07)';
+      for (let x = -H; x < W + H; x += gap) ctx.fillRect(x, -H, gap * 0.45, H * 3);
+      ctx.restore();
+      break;
+    }
+    case 'dots': {
+      const gap = W * 0.09;
+      ctx.fillStyle = 'rgba(255,255,255,0.11)';
+      for (let y = gap / 2; y < H; y += gap) {
+        for (let x = gap / 2; x < W; x += gap) {
+          ctx.beginPath(); ctx.arc(x, y, W * 0.007, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      break;
+    }
+    case 'grid': {
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 1;
+      const gap = W * 0.09;
+      for (let x = 0; x <= W; x += gap) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y <= H; y += gap) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      break;
+    }
+    case 'waves': {
+      ctx.strokeStyle = 'rgba(255,255,255,0.13)';
+      ctx.lineWidth = 2;
+      for (let row = 0; row < 6; row++) {
+        const baseY = H * (0.10 + row * 0.16);
+        ctx.beginPath();
+        for (let x = 0; x <= W; x += 12) {
+          const y = baseY + Math.sin((x / W) * Math.PI * 3 + row) * H * 0.02;
+          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      break;
+    }
+  }
+}
+
+// Fondo generado para cuando no hay foto: degradado con el color elegido + patrón del sector.
+// Queda como una publicación terminada, no como un cartel de "falta subir algo".
+function drawGeneratedBackground(ctx, W, H) {
+  const sector = SECTORES[state.sector] || SECTORES.general;
+  const accent = state.accentColor;
+
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, shadeColor(accent, 16));
+  grad.addColorStop(1, shadeColor(accent, -32));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  drawPattern(ctx, W, H, sector.pattern || 'blobs');
+  ctx.restore();
+}
+
+function drawBackground(ctx, W, H) {
+  if (state.photoImg) {
+    const r = getPhotoDrawRect(W, H);
+    ctx.drawImage(state.photoImg, r.dx, r.dy, r.dw, r.dh);
+  } else {
+    drawGeneratedBackground(ctx, W, H);
+  }
 }
 
 function wrapLines(ctx, text, maxWidth) {
@@ -1091,21 +1427,23 @@ function getPhotoDrawRect(W, H) {
   return { dw, dh, dx, dy };
 }
 
-function drawBackground(ctx, W, H) {
-  if (state.photoImg) {
-    const r = getPhotoDrawRect(W, H);
-    ctx.drawImage(state.photoImg, r.dx, r.dy, r.dw, r.dh);
-  } else {
-    ctx.fillStyle = '#1a1a24';
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#3a3a48';
-    ctx.font = '80px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('📷', W / 2, H / 2 - 20);
-    ctx.fillStyle = '#5a5650';
-    ctx.font = "500 32px 'DM Sans', sans-serif";
-    ctx.fillText('Sube tu foto para comenzar', W / 2, H / 2 + 60);
+// Mide el brillo promedio de una zona del canvas ya dibujado, para que el modo
+// "Automático" elija texto blanco o negro según lo que realmente hay debajo.
+function sampleZoneBrightness(ctx, x, y, w, h) {
+  x = Math.max(0, Math.round(x)); y = Math.max(0, Math.round(y));
+  w = Math.max(1, Math.round(w)); h = Math.max(1, Math.round(h));
+  const data = ctx.getImageData(x, y, w, h).data;
+  let total = 0, count = 0;
+  for (let i = 0; i < data.length; i += 4 * 41) {
+    total += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    count++;
   }
+  return count ? (total / count) / 255 : 0.35;
+}
+
+function getLuminance(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 }
 
 function renderCanvas() {
@@ -1146,21 +1484,35 @@ function renderCanvas() {
   const blockHeight = lines.length * lineHeight;
 
   if (lines.length) {
-    // Fondo oscuro degradado detrás del texto principal para legibilidad
-    const gradTop = mainY - blockHeight / 2 - 60;
-    const gradBottom = mainY + blockHeight / 2 + 60;
-    const grad = ctx.createLinearGradient(0, gradTop, 0, gradBottom);
-    grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(0.3, hexToRgba(accent, 0.25));
-    grad.addColorStop(0.5, 'rgba(0,0,0,0.55)');
-    grad.addColorStop(0.7, hexToRgba(accent, 0.25));
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, Math.max(0, gradTop), W, Math.min(H, gradBottom) - Math.max(0, gradTop));
+    // Zona donde va a caer el texto, para medir su brillo si el modo es Automático
+    const zoneTop = Math.max(0, mainY - blockHeight / 2 - 60);
+    const zoneBottom = Math.min(H, mainY + blockHeight / 2 + 60);
 
-    ctx.fillStyle = '#ffffff';
+    let textColor;
+    if (state.textColorMode === 'white') textColor = '#ffffff';
+    else if (state.textColorMode === 'black') textColor = '#0a0a0f';
+    else if (state.textColorMode === 'custom') textColor = state.customTextColor;
+    else {
+      // Automático: mide el brillo real del fondo en esa zona y elige el color que mejor se lea
+      const brightness = sampleZoneBrightness(ctx, 0, zoneTop, W, zoneBottom - zoneTop);
+      textColor = brightness > 0.55 ? '#0a0a0f' : '#ffffff';
+    }
+    const isLightText = getLuminance(textColor) > 0.5;
+
+    // Degradado de refuerzo: oscuro detrás de texto claro, claro detrás de texto oscuro
+    const grad = ctx.createLinearGradient(0, zoneTop, 0, zoneBottom);
+    const base = isLightText ? '0,0,0' : '255,255,255';
+    grad.addColorStop(0, `rgba(${base},0)`);
+    grad.addColorStop(0.3, hexToRgba(accent, 0.22));
+    grad.addColorStop(0.5, `rgba(${base},0.55)`);
+    grad.addColorStop(0.7, hexToRgba(accent, 0.22));
+    grad.addColorStop(1, `rgba(${base},0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, zoneTop, W, zoneBottom - zoneTop);
+
+    ctx.fillStyle = textColor;
     ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowColor = isLightText ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)';
     ctx.shadowBlur = 18;
     let startY = mainY - blockHeight / 2 + fontSize * 0.75;
     lines.forEach(line => {
@@ -1252,11 +1604,85 @@ function toast(msg, type = 'info') {
   setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(120%)'; el.style.transition = '0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
 }
 
+// ─── RECORDAR EL NEGOCIO EN ESTE DISPOSITIVO ───────────────────────────────
+// Así el usuario solo configura su negocio una vez; los próximos días
+// solo tiene que subir la foto y tocar "hazlo tú", como prometemos.
+const PROFILE_KEY = 'publicadorDiario_profile';
+
+function saveProfile() {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({
+      businessName: document.getElementById('businessName').value,
+      sectorText: document.getElementById('sectorText').value,
+      sector: state.sector,
+      accentColor: state.accentColor,
+      position: state.position,
+      fontKey: state.fontKey,
+      format: state.format,
+      familyIndex: state.familyIndex,
+      textColorMode: state.textColorMode,
+      customTextColor: state.customTextColor
+    }));
+    document.getElementById('forgetProfile').style.display = 'block';
+  } catch (e) { /* localStorage no disponible: seguimos sin recordar, sin romper la app */ }
+}
+
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+document.getElementById('forgetProfile').addEventListener('click', () => {
+  try { localStorage.removeItem(PROFILE_KEY); } catch (e) {}
+  document.getElementById('businessName').value = '';
+  document.getElementById('sectorText').value = '';
+  document.getElementById('sectorHint').textContent = 'Escribe tu actividad y elegimos el estilo de frases por ti.';
+  document.getElementById('forgetProfile').style.display = 'none';
+  toast('Datos olvidados en este dispositivo', 'info');
+});
+
 // ─── INIT ───────────────────────────────────────────────────────────────────
 buildSectorGrid();
 buildColorRow();
+buildTextColorRow();
 buildFontSelect();
-applyFormat('historia');
+
+const savedProfile = loadProfile();
+if (savedProfile) {
+  document.getElementById('businessName').value = savedProfile.businessName || '';
+  document.getElementById('sectorText').value = savedProfile.sectorText || '';
+  state.position = savedProfile.position || state.position;
+  state.fontKey = savedProfile.fontKey || state.fontKey;
+  state.accentColor = savedProfile.accentColor || state.accentColor;
+  state.familyIndex = typeof savedProfile.familyIndex === 'number' ? savedProfile.familyIndex : 0;
+  state.textColorMode = savedProfile.textColorMode || 'auto';
+  state.customTextColor = savedProfile.customTextColor || '#ffffff';
+
+  if (savedProfile.sector && SECTORES[savedProfile.sector]) {
+    selectSector(savedProfile.sector, { silent: true });
+    document.getElementById('sectorHint').textContent = `Recordamos que te dedicas a ${SECTORES[savedProfile.sector].label} ✓`;
+  }
+  document.querySelectorAll('.pos-btn').forEach(b => b.classList.toggle('selected', b.dataset.pos === state.position));
+  document.getElementById('fontSelect').value = state.fontKey;
+  document.querySelectorAll('#colorRow .swatch').forEach(s => s.classList.toggle('selected', s.dataset.color.toLowerCase() === state.accentColor.toLowerCase()));
+  const customColorEl = document.getElementById('customColor');
+  if (customColorEl) customColorEl.value = state.accentColor;
+  buildTextColorRow();
+
+  applyFormat(savedProfile.format && FORMATS[savedProfile.format] ? savedProfile.format : 'historia');
+  document.getElementById('forgetProfile').style.display = 'block';
+  if (savedProfile.businessName) {
+    setTimeout(() => toast(`Bienvenido de nuevo, ${savedProfile.businessName} ✦`, 'success'), 400);
+  }
+} else {
+  applyFormat('historia');
+}
+
+updateIdeaCard();
 document.fonts.ready.then(() => renderCanvas());
 
 // Registro del service worker (solo funciona si la app está alojada por http/https,
