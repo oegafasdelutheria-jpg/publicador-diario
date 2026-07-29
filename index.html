@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Publicador Diario</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#f7f4ef">
+<meta name="theme-color" content="#0a0a0f">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,18 +16,17 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f7f4ef;
-  --surface: #ffffff;
-  --surface2: #f0ece3;
-  --surface3: #e6e0d4;
-  --border: rgba(20,16,12,0.10);
-  --border-hover: rgba(20,16,12,0.20);
+  --bg: #0a0a0f;
+  --surface: #121218;
+  --surface2: #1a1a24;
+  --surface3: #22222e;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.16);
   --accent: #c8a96e;
-  --accent-text: #7a5a20;
-  --accent-dim: rgba(200,169,110,0.20);
-  --text: #1c1712;
-  --text2: #6b6259;
-  --text3: #736a5e;
+  --accent-dim: rgba(200,169,110,0.15);
+  --text: #f0ede8;
+  --text2: #9a9490;
+  --text3: #5a5650;
   --radius: 12px;
   --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
 }
@@ -52,7 +51,7 @@ header {
   gap: 12px;
   padding: 16px 28px;
   border-bottom: 1px solid var(--border);
-  background: rgba(247,244,239,0.85);
+  background: rgba(10,10,15,0.9);
   backdrop-filter: blur(16px);
   position: sticky;
   top: 0;
@@ -77,7 +76,7 @@ header {
 
 .logo-text span {
   font-size: 10.5px;
-  color: var(--accent-text);
+  color: var(--accent);
   letter-spacing: 1.8px;
   text-transform: uppercase;
   font-weight: 500;
@@ -201,7 +200,7 @@ input[type="range"]::-moz-range-thumb {
 
 .sector-btn .icon { font-size: 20px; }
 .sector-btn:hover { border-color: var(--border-hover); color: var(--text); }
-.sector-btn.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent-text); }
+.sector-btn.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
 
 /* Position selector */
 .position-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
@@ -219,7 +218,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .pos-btn:hover { border-color: var(--border-hover); color: var(--text); }
-.pos-btn.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent-text); }
+.pos-btn.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
 
 .format-btn {
   background: var(--surface2);
@@ -233,7 +232,7 @@ input[type="range"]::-moz-range-thumb {
   transition: var(--transition);
 }
 .format-btn:hover { border-color: var(--border-hover); color: var(--text); }
-.format-btn.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent-text); }
+.format-btn.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
 
 /* Color swatches */
 .color-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -314,7 +313,7 @@ input[type="range"]::-moz-range-thumb {
 /* Canvas preview */
 .canvas-wrap {
   width: 100%;
-  max-width: 270px;
+  max-width: 320px;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 8px 40px rgba(0,0,0,0.5);
@@ -339,7 +338,7 @@ input[type="range"]::-moz-range-thumb {
 .link-btn {
   background: none;
   border: none;
-  color: var(--accent-text);
+  color: var(--accent);
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
@@ -366,7 +365,7 @@ input[type="range"]::-moz-range-thumb {
   font-size: 11px;
   letter-spacing: 1.4px;
   text-transform: uppercase;
-  color: var(--accent-text);
+  color: var(--accent);
   font-weight: 500;
 }
 .idea-directive {
@@ -400,9 +399,9 @@ input[type="range"]::-moz-range-thumb {
   gap: 8px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
-.toast.success { border-color: rgba(30,122,69,0.4); color: #1e7a45; }
-.toast.error { border-color: rgba(184,48,48,0.4); color: #b83030; }
-.toast.info { border-color: rgba(47,109,196,0.4); color: #2f6dc4; }
+.toast.success { border-color: rgba(85,184,122,0.4); color: #55b87a; }
+.toast.error { border-color: rgba(224,85,85,0.4); color: #e05555; }
+.toast.info { border-color: rgba(85,144,224,0.4); color: #5590e0; }
 </style>
 </head>
 <body>
@@ -422,6 +421,7 @@ input[type="range"]::-moz-range-thumb {
       <div class="idea-label" id="ideaFamilyLabel">HOY: PRODUCTO</div>
       <div class="idea-directive" id="ideaDirective">Muestra tu producto o servicio de hoy.</div>
       <div class="idea-photo" id="ideaPhotoHint">📷 Haz una foto de lo que tengas listo ahora mismo.</div>
+      <button type="button" class="link-btn" id="nextIdeaBtn" style="margin-top:6px;">↻ Otra idea</button>
     </div>
 
     <div class="field-group">
@@ -553,7 +553,8 @@ function getCurrentFamily() {
 
 function updateIdeaCard() {
   const f = getCurrentFamily();
-  document.getElementById('ideaFamilyLabel').textContent = 'HOY: ' + f.label.toUpperCase();
+  const check = state.ideaUsedToday ? ' ✓' : '';
+  document.getElementById('ideaFamilyLabel').textContent = 'HOY: ' + f.label.toUpperCase() + check;
   document.getElementById('ideaDirective').textContent = f.directive;
   const photoHint = document.getElementById('ideaPhotoHint');
   if (f.photoIdea) {
@@ -564,6 +565,11 @@ function updateIdeaCard() {
   }
 }
 
+function markIdeaAsUsed() {
+  state.ideaUsedToday = true;
+  updateIdeaCard();
+}
+
 // ─── BANCO DE CONTENIDO POR SECTOR ──────────────────────────────────────────────
 const SECTORES = {
   gastronomia: {
@@ -571,31 +577,33 @@ const SECTORES = {
     label: 'Gastronomía', icon: '🍽️', accent: '#d9714e',
     font: "'Fraunces', serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['restaurante','bar','cafeteria','café','cafe','comida','gastronomia','gastronómico','pizzeria','pizzería','hamburgueseria','hamburguesería','panaderia','panadería','pasteleria','pastelería','cocina','tapas','marisqueria','marisquería','asador','taberna','bistro','heladeria','heladería','food truck','catering','bocadillos','bocateria'],
-    openers: [
-      "Hoy se come distinto en {negocio}",
-      "Lo que estabas esperando ya está en la mesa",
-      "{negocio} te invita a probar algo nuevo",
-      "El plato del día tiene nombre propio",
-      "Directo del fuego a tu mesa",
-      "Hoy cocinamos con ganas",
-      "Esto no es solo comida, es un momento",
-      "La mejor excusa para salir hoy",
-      "En {negocio} el sabor no espera",
-      "Reserva tu mesa antes de que se agote",
-      "Ideal para compartir (o no)",
-      "Ha vuelto lo que tanto pedíais",
-      "Hecho como a ti te gusta",
-      "Un clásico que nunca falla",
-      "Hoy el hambre gana",
-      "Se prueba, se repite, se recomienda",
-      "El aroma ya llegó hasta la puerta",
-      "Receta de siempre, ganas de hoy",
-      "Mesa lista, falta poco",
-      "Lo simple, cuando está bien hecho, gana",
-      "Hoy la cocina no descansa",
-      "Para compartir o para ti solo, tú decides",
-      "Esto se sirve mejor caliente"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy sale del horno algo que no te vas a querer perder",
+        "El plato del día ya tiene nombre en {negocio}",
+        "Esto es lo que se cocina hoy en {negocio}"
+      ],
+      proceso: [
+        "Las cosas buenas empiezan mucho antes de llegar a la mesa",
+        "Haz una foto mientras lo estás preparando",
+        "Así se prepara, paso a paso, lo que hoy vas a probar"
+      ],
+      persona: [
+        "Detrás de cada plato hay alguien que lo cuida de verdad",
+        "Hoy te presentamos a quien cocina en {negocio}",
+        "Una cara conocida detrás del mostrador de {negocio}"
+      ],
+      pregunta: [
+        "¿Dulce o salado hoy?",
+        "¿Para comer aquí o para llevar?",
+        "¿Ya has desayunado o te esperamos con algo rico?"
+      ],
+      confianza: [
+        "Llevamos años haciendo esto de la misma manera, con el mismo cuidado",
+        "En {negocio} el sabor no es casualidad",
+        "Cada cliente que vuelve es la mejor señal de que algo hacemos bien"
+      ]
+    },
     footers: [
       "📍 {negocio} · Te esperamos",
       "Pide ya · Reparto a domicilio",
@@ -608,41 +616,46 @@ const SECTORES = {
       "Escríbenos y te guardamos sitio",
       "Hoy también hacemos para llevar"
     ],
-    captions: [
-      "Hoy tenemos algo especial esperándote en {negocio}. Ven a probarlo o pídelo a domicilio, como prefieras.",
-      "Cada plato se prepara con el mismo cuidado de siempre. Te esperamos en {negocio}.",
-      "No lo decimos nosotros, pero hoy la mesa de {negocio} está mejor que nunca.",
-      "Un día más, la misma pasión de siempre. Pasa por {negocio} y cuéntanos qué te ha parecido.",
-      "Si todavía no has probado lo nuevo de {negocio}, hoy es un buen día para hacerlo."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy tenemos algo especial esperándote en {negocio}. Ven a probarlo o pídelo a domicilio."],
+      proceso: ["Hoy te enseñamos un poco de lo que pasa antes de abrir las puertas de {negocio}."],
+      persona: ["Detrás de cada plato de {negocio} hay una persona que lo prepara con cuidado. Hoy te la presentamos."],
+      pregunta: ["¿Dulce o salado? Cuéntanoslo en los comentarios, te leemos desde {negocio}."],
+      confianza: ["Llevamos tiempo haciendo las cosas de la misma manera en {negocio}, y se nota."]
+    }
   },
   belleza: {
     pattern: 'rings',
     label: 'Belleza / Estética', icon: '💇', accent: '#b98bb0',
     font: "'Cormorant Garamond', serif", fontWeight: 700, fontStyle: 'italic',
     keywords: ['peluqueria','peluquería','salon','salón','estetica','estética','spa','uñas','manicura','pedicura','belleza','maquillaje','barberia','barbería','masajes','depilacion','depilación','centro de belleza','tattoo','tatuaje'],
-    openers: [
-      "Tu mejor versión empieza en {negocio}",
-      "Un ratito para ti, hoy",
-      "Brillar también se agenda",
-      "En {negocio} te cuidamos como te mereces",
-      "Cambia de look, cambia de ánimo",
-      "Citas disponibles esta semana",
-      "El detalle que marca la diferencia",
-      "Hoy es un buen día para consentirte",
-      "{negocio}: resultados que se notan",
-      "Vuelve a sentirte tú",
-      "La belleza también se entrena",
-      "Cuidarte no es un lujo, es un hábito",
-      "Hoy toca mimarte un poco más",
-      "El brillo que buscabas está más cerca de lo que crees",
-      "En {negocio} cada detalle se piensa para ti",
-      "Renovarte también es cuidarte",
-      "La confianza también se peina",
-      "Hoy es un buen día para verte como te sientes por dentro",
-      "Pequeños cambios, gran diferencia",
-      "Tu cita de hoy puede cambiarte el día"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy tenemos hueco para tu tratamiento favorito",
+        "El servicio que buscabas ya está disponible en {negocio}",
+        "Esto es lo que puedes hacerte hoy en {negocio}"
+      ],
+      proceso: [
+        "Así preparamos cada detalle antes de tu cita en {negocio}",
+        "Haz una foto del antes, nosotros nos encargamos del después",
+        "Un vistazo a cómo trabajamos en {negocio}"
+      ],
+      persona: [
+        "Detrás de cada cambio de look hay alguien que lo piensa contigo",
+        "Hoy te presentamos a quien te va a cuidar en {negocio}",
+        "Una cara conocida te espera en {negocio}"
+      ],
+      pregunta: [
+        "¿Corte, color o los dos?",
+        "¿Lista para un cambio hoy?",
+        "¿Qué es lo que más te gustaría probar?"
+      ],
+      confianza: [
+        "Llevamos tiempo cuidando los mismos detalles en {negocio}",
+        "La confianza también se construye cita a cita",
+        "En {negocio} no improvisamos con tu imagen"
+      ]
+    },
     footers: [
       "📍 {negocio} · Reserva tu cita",
       "Citas por DM o WhatsApp",
@@ -654,40 +667,45 @@ const SECTORES = {
       "Consulta disponibilidad hoy",
       "Te esperamos con todo listo"
     ],
-    captions: [
-      "En {negocio} creemos que cuidarte es un momento para ti, no una obligación más. Reserva tu cita esta semana.",
-      "Cada tratamiento en {negocio} está pensado para que salgas mejor de como has entrado. Te esperamos.",
-      "Hoy es un buen día para regalarte ese ratito que llevas posponiendo. {negocio} te espera.",
-      "La constancia se nota. Seguimos cuidando cada detalle en {negocio} para que veas los resultados.",
-      "Si todavía no has probado nuestro servicio más pedido, en {negocio} tenemos hueco para ti esta semana."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy tenemos hueco para el tratamiento que buscabas. Reserva tu cita en {negocio}."],
+      proceso: ["Un vistazo a lo que pasa antes de que salgas de {negocio} con un look nuevo."],
+      persona: ["Detrás de cada cita en {negocio} hay alguien que se toma en serio tu cuidado."],
+      pregunta: ["¿Corte, color o los dos? Cuéntanos qué buscas y te ayudamos a decidir."],
+      confianza: ["La confianza se construye cita a cita. Así trabajamos en {negocio}."]
+    }
   },
   moda: {
     pattern: 'stripes',
     label: 'Moda y Comercio', icon: '👗', accent: '#c8a96e',
     font: "'Playfair Display', serif", fontWeight: 800, fontStyle: 'normal',
     keywords: ['ropa','moda','boutique','tienda de ropa','zapateria','zapatería','accesorios','joyeria','joyería','calzado','textil','indumentaria','tienda','retail','regalos','papeleria','papelería','libreria','librería','floristeria','floristería'],
-    openers: [
-      "Llegó lo nuevo a {negocio}",
-      "Para vestir el día como quieras",
-      "Stock limitado, vuela rápido",
-      "El look que estabas buscando",
-      "{negocio}: nueva colección disponible",
-      "Combina, anímate, es tuyo",
-      "Últimas unidades en tienda",
-      "Lo simple también es elegante",
-      "Renueva tu armario hoy",
-      "Piezas que no vas a ver en todos lados",
-      "Se agota rápido, avisados quedáis",
-      "Cada temporada trae algo distinto",
-      "Vístete como eres, no solo para la ocasión",
-      "{negocio}: piezas con carácter propio",
-      "Lo básico también puede sorprender",
-      "Hoy tocan combinaciones nuevas",
-      "Encuentra tu estilo, no lo persigas",
-      "Menos es más, y hoy lo demostramos",
-      "Descubre lo último antes que nadie"
-    ],
+    openersByFamily: {
+      producto: [
+        "Llegó lo nuevo a {negocio}",
+        "Esto es lo que tenemos hoy en {negocio}",
+        "Stock limitado, esto vuela rápido"
+      ],
+      proceso: [
+        "Así elegimos cada pieza que llega a {negocio}",
+        "Un vistazo a cómo armamos la nueva colección",
+        "Haz una foto de tu combinación favorita de hoy"
+      ],
+      persona: [
+        "Detrás de cada percha hay alguien que eligió con cuidado",
+        "Hoy te presentamos a quien arma los looks de {negocio}",
+        "Una cara conocida te espera en {negocio}"
+      ],
+      pregunta: [
+        "¿Con qué lo combinarías?",
+        "¿Cuál es tu prenda favorita de esta temporada?"
+      ],
+      confianza: [
+        "Llevamos temporadas eligiendo con el mismo cuidado",
+        "En {negocio} no vendemos por vender",
+        "Cada pieza que entra a {negocio} pasa nuestro propio filtro"
+      ]
+    },
     footers: [
       "📍 {negocio} · Envíos disponibles",
       "Nueva colección · Stock limitado",
@@ -699,39 +717,45 @@ const SECTORES = {
       "Cambios y devoluciones fáciles",
       "Visítanos o pide por DM"
     ],
-    captions: [
-      "Renovamos la tienda con piezas pensadas para el día a día. Pasa por {negocio} o escríbenos para coordinar el envío.",
-      "Cada temporada elegimos con cuidado lo que llega a {negocio}. Esto es lo nuevo.",
-      "Si buscas algo diferente sin gastar de más, en {negocio} tenemos justo lo que necesitas.",
-      "Últimas unidades de esta línea en {negocio}. Consúltanos disponibilidad de tallas.",
-      "En {negocio} vestimos tu día a día con piezas sencillas que combinan con todo."
-    ]
+    captionsByFamily: {
+      producto: ["Llegó lo nuevo a {negocio}. Pasa a verlo o escríbenos para reservar tu talla."],
+      proceso: ["Así elegimos cada temporada lo que llega a {negocio}."],
+      persona: ["Detrás de cada percha en {negocio} hay alguien que piensa en ti al elegir."],
+      pregunta: ["¿Con qué lo combinarías? Cuéntanos y armamos el look juntos."],
+      confianza: ["Cada pieza que entra a {negocio} pasa nuestro propio filtro antes de llegar a la tienda."]
+    }
   },
   salud: {
     pattern: 'waves',
     label: 'Salud y Bienestar', icon: '🧘', accent: '#6ba58a',
     font: "'Fraunces', serif", fontWeight: 600, fontStyle: 'normal',
     keywords: ['fisioterapia','fisio','clinica','clínica','gimnasio','entrenador','entrenadora','personal trainer','nutricion','nutrición','yoga','pilates','psicologia','psicología','osteopatia','osteopatía','bienestar','salud','terapia','rehabilitacion','rehabilitación'],
-    openers: [
-      "Tu bienestar empieza en {negocio}",
-      "Cuidar de ti también es productivo",
-      "Hoy es un buen día para cuidarte",
-      "En {negocio} avanzamos a tu ritmo",
-      "Pequeños cambios, grandes resultados",
-      "Reserva tu sesión de esta semana",
-      "{negocio}: resultados que se sienten",
-      "Tu cuerpo te lo va a agradecer",
-      "La constancia también se acompaña",
-      "En {negocio} empezamos donde tú estás",
-      "Hoy también cuenta como avance",
-      "Tu bienestar no espera al lunes",
-      "En {negocio} cada sesión suma",
-      "Escuchar al cuerpo también es cuidarlo",
-      "Un paso más cerca de sentirte mejor",
-      "Hoy puede ser el día que retomes esto",
-      "El progreso no siempre se ve, pero se siente",
-      "Date el espacio que necesitas hoy"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy tenemos sesión disponible en {negocio}",
+        "Esto es lo que puedes reservar hoy en {negocio}",
+        "Un espacio para ti, disponible esta semana"
+      ],
+      proceso: [
+        "Así trabajamos cada sesión en {negocio}",
+        "Un vistazo a cómo acompañamos tu proceso",
+        "Haz una foto de tu progreso de hoy"
+      ],
+      persona: [
+        "Detrás de cada sesión hay alguien que escucha primero",
+        "Hoy te presentamos a quien te acompaña en {negocio}",
+        "Una cara conocida te espera en {negocio}"
+      ],
+      pregunta: [
+        "¿Cómo te sientes hoy?",
+        "¿Qué es lo que más te cuesta sostener?"
+      ],
+      confianza: [
+        "Llevamos tiempo acompañando el mismo tipo de procesos",
+        "En {negocio} no prometemos resultados de un día para otro",
+        "La constancia también se acompaña, no se exige"
+      ]
+    },
     footers: [
       "📍 {negocio} · Pide tu cita",
       "Primera sesión de valoración",
@@ -743,35 +767,43 @@ const SECTORES = {
       "Empieza cuando estés listo",
       "Sesiones individuales y en grupo"
     ],
-    captions: [
-      "En {negocio} creemos que cuidarte no debería ser complicado. Escríbenos y vemos cómo podemos ayudarte.",
-      "Cada sesión en {negocio} está pensada para tu ritmo y tus objetivos. Pide tu cita esta semana.",
-      "Si llevas tiempo posponiendo cuidarte, en {negocio} podemos empezar cuando quieras.",
-      "La constancia es lo que da resultados. Seguimos acompañando a nuestros pacientes en {negocio}.",
-      "En {negocio} escuchamos primero y después proponemos el plan que mejor encaja contigo."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy tenemos lugar para tu sesión. Reserva en {negocio} y empieza cuando quieras."],
+      proceso: ["Un vistazo a cómo acompañamos cada proceso en {negocio}."],
+      persona: ["Detrás de cada sesión en {negocio} hay alguien que escucha antes de proponer nada."],
+      pregunta: ["¿Cómo te sientes hoy? Cuéntanos y vemos juntos por dónde empezar."],
+      confianza: ["No prometemos resultados de un día para otro. Así trabajamos en {negocio}."]
+    }
   },
   profesionales: {
     pattern: 'grid',
     label: 'Servicios Profesionales', icon: '💼', accent: '#5590c9',
     font: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['asesoria','asesoría','abogado','abogada','gestoria','gestoría','contable','consultoria','consultoría','notario','notaria','asesor','asesora','despacho','fiscal','laboral','juridico','jurídico'],
-    openers: [
-      "En {negocio} lo resolvemos por ti",
-      "Menos papeleo, más tranquilidad",
-      "{negocio}: soluciones claras, sin rodeos",
-      "Consulta tu caso sin compromiso",
-      "Hoy es un buen día para poner esto en orden",
-      "Te acompañamos en cada paso",
-      "En {negocio} hablamos claro, sin tecnicismos",
-      "Resolvemos lo que a ti te quita el sueño",
-      "Un trámite menos en tu lista",
-      "En {negocio} nos ocupamos, tú sigues con lo tuyo",
-      "La tranquilidad también se gestiona",
-      "Hoy es buen momento para preguntarnos esa duda",
-      "Claridad primero, papeles después",
-      "En {negocio} no hay letra pequeña"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy podemos resolver tu consulta en {negocio}",
+        "Esto es lo que hacemos en {negocio}",
+        "Un trámite menos en tu lista, hoy mismo"
+      ],
+      proceso: [
+        "Así trabajamos cada caso en {negocio}",
+        "Un vistazo a cómo resolvemos tu trámite"
+      ],
+      persona: [
+        "Detrás de cada caso hay alguien que lo sigue de cerca",
+        "Hoy te presentamos a quien lleva tu consulta en {negocio}"
+      ],
+      pregunta: [
+        "¿Qué trámite llevas postergando?",
+        "¿Tienes una duda que nadie te ha sabido explicar bien?"
+      ],
+      confianza: [
+        "Llevamos años resolviendo el mismo tipo de casos",
+        "En {negocio} no hay letra pequeña",
+        "La tranquilidad de tenerlo todo en regla, sin sorpresas"
+      ]
+    },
     footers: [
       "📍 {negocio} · Primera consulta gratuita",
       "Escríbenos y te llamamos",
@@ -782,35 +814,43 @@ const SECTORES = {
       "Consulta tu caso hoy mismo",
       "Atención también online"
     ],
-    captions: [
-      "En {negocio} nos encargamos de que no tengas que preocuparte por el papeleo. Escríbenos y lo vemos juntos.",
-      "Cada caso es distinto, por eso en {negocio} empezamos siempre por escuchar. Pide tu consulta sin compromiso.",
-      "Si llevas tiempo posponiendo este trámite, en {negocio} podemos ayudarte a resolverlo esta semana.",
-      "La tranquilidad de tenerlo todo en regla también se puede delegar. Cuenta con {negocio}.",
-      "En {negocio} traducimos lo complicado a algo simple. Hablemos de tu situación."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy podemos ayudarte con eso que llevas postergando. Escríbenos en {negocio}."],
+      proceso: ["Así trabajamos cada caso, paso a paso, en {negocio}."],
+      persona: ["Detrás de cada consulta en {negocio} hay alguien que la sigue de cerca, no un número más."],
+      pregunta: ["¿Qué trámite llevas postergando? Cuéntanos y vemos cómo resolverlo."],
+      confianza: ["En {negocio} no hay letra pequeña. Así trabajamos, siempre."]
+    }
   },
   hogar: {
     pattern: 'stripes',
     label: 'Hogar y Reformas', icon: '🔧', accent: '#c9863b',
     font: "'DM Sans', sans-serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['electricista','fontanero','fontaneria','fontanería','pintor','reforma','reformas','carpintero','carpinteria','carpintería','cerrajero','albañil','construccion','construcción','instalador','climatizacion','climatización','obra'],
-    openers: [
-      "En {negocio} lo dejamos como nuevo",
-      "Presupuesto sin compromiso, hoy mismo",
-      "{negocio}: trabajo bien hecho, sin sorpresas",
-      "Ese arreglo que llevas posponiendo, hoy lo resolvemos",
-      "Puntualidad y garantía en cada trabajo",
-      "En {negocio} cuidamos hasta el último detalle",
-      "Reformas y reparaciones sin dolores de cabeza",
-      "Hoy es un buen día para arreglar eso",
-      "Lo que hoy arreglamos, mañana ni se nota",
-      "En {negocio} cumplimos lo que prometemos",
-      "Ese proyecto pendiente puede empezar hoy",
-      "Manos expertas, resultados que se ven",
-      "Presupuesto claro antes de empezar",
-      "En {negocio} no dejamos nada a medias"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy tenemos disponibilidad para tu arreglo en {negocio}",
+        "Esto es lo que resolvemos hoy en {negocio}"
+      ],
+      proceso: [
+        "Así dejamos cada trabajo en {negocio}",
+        "Un vistazo a cómo trabajamos, paso a paso",
+        "Haz una foto del antes, nosotros nos encargamos del después"
+      ],
+      persona: [
+        "Detrás de cada arreglo hay alguien que lo cuida como propio",
+        "Hoy te presentamos a quien trabaja en {negocio}"
+      ],
+      pregunta: [
+        "¿Qué arreglo llevas postergando?",
+        "¿Hay algo en tu casa que necesita una mano?"
+      ],
+      confianza: [
+        "Llevamos años haciendo el mismo trabajo, con la misma seriedad",
+        "En {negocio} no dejamos nada a medias",
+        "Puntuales, claros, sin sorpresas en la factura"
+      ]
+    },
     footers: [
       "📍 {negocio} · Presupuesto gratis",
       "Disponibilidad esta semana",
@@ -821,35 +861,41 @@ const SECTORES = {
       "Servicio a domicilio",
       "Consulta disponibilidad ahora"
     ],
-    captions: [
-      "En {negocio} sabemos que estas cosas no pueden esperar. Escríbenos y te damos presupuesto hoy mismo.",
-      "Cada trabajo en {negocio} se entrega con garantía y sin sorpresas en la factura. Consúltanos.",
-      "Si llevas tiempo posponiendo esa reparación, en {negocio} podemos verlo esta semana.",
-      "Puntuales, claros y sin líos. Así trabajamos en {negocio}.",
-      "En {negocio} dejamos cada trabajo como si fuera nuestra propia casa."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy tenemos disponibilidad para ese arreglo que llevas postergando. Escríbenos en {negocio}."],
+      proceso: ["Un vistazo a cómo dejamos cada trabajo en {negocio}, antes y después."],
+      persona: ["Detrás de cada arreglo en {negocio} hay alguien que lo trata como si fuera su propia casa."],
+      pregunta: ["¿Qué arreglo llevas postergando? Cuéntanos y te damos presupuesto hoy mismo."],
+      confianza: ["Puntuales, claros y sin sorpresas en la factura. Así trabajamos en {negocio}."]
+    }
   },
   mascotas: {
     pattern: 'dots',
     label: 'Mascotas', icon: '🐾', accent: '#a67c52',
     font: "'Fraunces', serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['veterinaria','veterinario','peluqueria canina','peluquería canina','mascota','mascotas','perro','perros','gato','gatos','petshop','tienda de animales','adiestrador','adiestramiento','residencia canina'],
-    openers: [
-      "Tu mejor amigo también merece un buen día",
-      "En {negocio} cuidamos a quien más quieres",
-      "Reserva su cita esta semana",
-      "{negocio}: cuidados con cariño de verdad",
-      "Hoy toca mimar un poco más",
-      "En {negocio} lo tratamos como de la familia",
-      "Salud, cariño y buenos cuidados en {negocio}",
-      "Porque ellos también se merecen lo mejor",
-      "Una cola moviéndose es la mejor recompensa",
-      "En {negocio} cada visita es con cariño",
-      "Hoy también toca cuidar a quien no habla pero lo dice todo",
-      "Prevenir es cuidar, y hoy es un buen día",
-      "En {negocio} lo tratamos como si fuera nuestro",
-      "Tu compañero también merece su momento"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy tenemos cita disponible en {negocio}",
+        "Esto es lo que puedes reservar hoy para tu compañero"
+      ],
+      proceso: [
+        "Así cuidamos a cada mascota que pasa por {negocio}",
+        "Un vistazo a cómo trabajamos en {negocio}"
+      ],
+      persona: [
+        "Detrás de cada visita hay alguien que los trata con cariño de verdad",
+        "Hoy te presentamos a quien cuida a tu compañero en {negocio}"
+      ],
+      pregunta: [
+        "¿Cómo se llama tu compañero?",
+        "¿Hace cuánto no le haces una revisión?"
+      ],
+      confianza: [
+        "Llevamos tiempo cuidando mascotas como si fueran propias",
+        "En {negocio} cada visita es con el mismo cariño"
+      ]
+    },
     footers: [
       "📍 {negocio} · Pide cita",
       "Urgencias atendidas",
@@ -860,35 +906,41 @@ const SECTORES = {
       "Consulta disponibilidad hoy",
       "Atención también los fines de semana"
     ],
-    captions: [
-      "En {negocio} cuidamos de tu mascota como si fuera nuestra. Pide cita esta semana.",
-      "Cada visita a {negocio} es una oportunidad de mimar un poco más a tu compañero. Te esperamos.",
-      "Si hace tiempo que no le haces una revisión, en {negocio} tenemos hueco esta semana.",
-      "La salud de tu mascota no espera. Escríbenos y lo vemos cuanto antes.",
-      "En {negocio} tratamos a cada mascota con la misma dedicación con la que tratarías a la tuya."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy tenemos cita disponible para tu compañero. Reserva en {negocio}."],
+      proceso: ["Un vistazo a cómo cuidamos a cada mascota que pasa por {negocio}."],
+      persona: ["Detrás de cada visita en {negocio} hay alguien que trata a tu mascota como propia."],
+      pregunta: ["¿Hace cuánto no le haces una revisión? En {negocio} tenemos hueco esta semana."],
+      confianza: ["Cuidamos a cada mascota que pasa por {negocio} con el mismo cariño, siempre."]
+    }
   },
   educacion: {
     pattern: 'grid',
     label: 'Educación', icon: '📚', accent: '#7a6bc9',
     font: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['academia','clases particulares','profesor','profesora','autoescuela','formacion','formación','curso','cursos','idiomas','ingles','inglés','refuerzo escolar','oposiciones','tutor','tutoria','tutoría'],
-    openers: [
-      "En {negocio} aprender por fin tiene sentido",
-      "Plazas abiertas para este mes",
-      "{negocio}: resultados que se notan en las notas",
-      "Aprender a tu ritmo, sin agobios",
-      "Hoy es un buen día para empezar",
-      "En {negocio} explicamos hasta que se entienda de verdad",
-      "Refuerza lo que necesites, cuando lo necesites",
-      "Prepárate con quienes ya lo han conseguido",
-      "Cada duda resuelta es un paso más",
-      "En {negocio} el progreso se nota clase a clase",
-      "Aprender bien también da tranquilidad",
-      "Hoy puede ser el día que le pierdas el miedo a esto",
-      "En {negocio} nadie se queda con la duda",
-      "Constancia, método y paciencia: así trabajamos"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy tenemos plazas disponibles en {negocio}",
+        "Esto es lo que puedes empezar hoy en {negocio}"
+      ],
+      proceso: [
+        "Así trabajamos cada clase en {negocio}",
+        "Un vistazo a cómo enseñamos en {negocio}"
+      ],
+      persona: [
+        "Detrás de cada clase hay alguien que se toma tu progreso en serio",
+        "Hoy te presentamos a quien enseña en {negocio}"
+      ],
+      pregunta: [
+        "¿Qué es lo que más te cuesta?",
+        "¿Hace cuánto quieres retomar esto?"
+      ],
+      confianza: [
+        "Llevamos tiempo enseñando de la misma manera, con los mismos resultados",
+        "En {negocio} nadie se queda con la duda"
+      ]
+    },
     footers: [
       "📍 {negocio} · Plazas limitadas",
       "Clase de prueba gratuita",
@@ -899,34 +951,41 @@ const SECTORES = {
       "Clases online y presenciales",
       "Primera clase sin compromiso"
     ],
-    captions: [
-      "En {negocio} creemos que aprender no tiene por qué ser un drama. Escríbenos y te contamos cómo trabajamos.",
-      "Cada alumno en {negocio} avanza a su propio ritmo, con seguimiento real. Plazas abiertas este mes.",
-      "Si llevas tiempo buscando ayuda con esto, en {negocio} podemos empezar cuando quieras.",
-      "Los resultados se notan cuando el método es el correcto. Conoce cómo trabajamos en {negocio}.",
-      "En {negocio} acompañamos el proceso completo, no solo la clase suelta. Consúltanos sin compromiso."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy tenemos plazas disponibles. Escríbenos y empieza cuando quieras en {negocio}."],
+      proceso: ["Un vistazo a cómo trabajamos cada clase en {negocio}."],
+      persona: ["Detrás de cada clase en {negocio} hay alguien que se toma tu progreso en serio."],
+      pregunta: ["¿Qué es lo que más te cuesta? Cuéntanos y armamos un plan para ti."],
+      confianza: ["Enseñamos de la misma manera desde siempre, y los resultados se notan. Así es {negocio}."]
+    }
   },
   automocion: {
     pattern: 'stripes',
     label: 'Automoción', icon: '🚗', accent: '#4a7ba6',
     font: "'DM Sans', sans-serif", fontWeight: 700, fontStyle: 'normal',
     keywords: ['taller','mecanico','mecánico','coches','neumaticos','neumáticos','lavado de coches','chapa y pintura','revision','revisión','itv','automocion','automoción','recambios'],
-    openers: [
-      "En {negocio} tu coche queda como nuevo",
-      "Revisión completa antes de que dé problemas",
-      "{negocio}: presupuesto claro, sin sorpresas",
-      "Ese ruido raro, hoy lo revisamos",
-      "Puntualidad y garantía en cada reparación",
-      "En {negocio} cuidamos tu coche como si fuera nuestro",
-      "Prepara tu coche antes del viaje",
-      "Ese detalle que ibas dejando pasar, hoy lo revisamos",
-      "En {negocio} nada se hace a medias",
-      "Seguridad primero, siempre",
-      "Revisar a tiempo sale más barato que reparar tarde",
-      "Diagnóstico honesto, sin vender de más",
-      "Tu coche también merece un buen mantenimiento"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy tenemos lugar para revisar tu coche en {negocio}",
+        "Esto es lo que resolvemos hoy en {negocio}"
+      ],
+      proceso: [
+        "Así revisamos cada coche que entra a {negocio}",
+        "Un vistazo a cómo trabajamos en {negocio}"
+      ],
+      persona: [
+        "Detrás de cada revisión hay alguien que lo trata como propio",
+        "Hoy te presentamos a quien trabaja en {negocio}"
+      ],
+      pregunta: [
+        "¿Hace cuánto no le haces una revisión a tu coche?",
+        "¿Ese ruido raro sigue ahí?"
+      ],
+      confianza: [
+        "Llevamos años revisando coches con el mismo cuidado",
+        "En {negocio} el diagnóstico siempre es honesto"
+      ]
+    },
     footers: [
       "📍 {negocio} · Presupuesto sin compromiso",
       "Cita previa disponible",
@@ -937,34 +996,41 @@ const SECTORES = {
       "Revisión express disponible",
       "Consulta sin compromiso"
     ],
-    captions: [
-      "En {negocio} revisamos tu coche a fondo antes de que el problema vaya a más. Pide cita esta semana.",
-      "Presupuesto claro, sin letra pequeña. Así trabajamos en {negocio}.",
-      "Si llevas tiempo posponiendo esa revisión, en {negocio} podemos verlo cuanto antes.",
-      "Cuidamos cada coche que entra en {negocio} como si fuera el nuestro.",
-      "En {negocio} te explicamos qué necesita tu coche, sin tecnicismos ni sorpresas."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy tenemos lugar para revisar tu coche. Pide cita en {negocio}."],
+      proceso: ["Un vistazo a cómo revisamos cada coche que entra a {negocio}."],
+      persona: ["Detrás de cada revisión en {negocio} hay alguien que trata tu coche como propio."],
+      pregunta: ["¿Ese ruido raro sigue ahí? En {negocio} lo revisamos hoy mismo."],
+      confianza: ["El diagnóstico siempre es honesto en {negocio}, sin vender de más."]
+    }
   },
   eventos: {
     pattern: 'dots',
     label: 'Eventos y Creatividad', icon: '📷', accent: '#c95f8f',
     font: "'Cormorant Garamond', serif", fontWeight: 700, fontStyle: 'italic',
     keywords: ['fotografia','fotografía','fotografo','fotógrafo','diseño','decoracion','decoración','floristeria','floristería','eventos','bodas','musica','música','dj','videografo','videógrafo','wedding planner'],
-    openers: [
-      "Cada momento merece quedar bien contado",
-      "En {negocio} convertimos ideas en recuerdos",
-      "Reserva tu fecha antes de que se llene la agenda",
-      "{negocio}: los detalles que hacen la diferencia",
-      "Hoy es un buen día para planear ese momento especial",
-      "En {negocio} cuidamos cada detalle contigo",
-      "Momentos que se recuerdan, no solo se viven",
-      "Lo bonito también se planea con tiempo",
-      "En {negocio} cada proyecto es único",
-      "Ese día que imaginas, lo hacemos real",
-      "Las mejores ideas empiezan con una conversación",
-      "En {negocio} no dejamos nada librado al azar",
-      "Guardamos los detalles que tú ni notas"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy tenemos fechas disponibles en {negocio}",
+        "Esto es lo que puedes reservar hoy en {negocio}"
+      ],
+      proceso: [
+        "Así preparamos cada detalle en {negocio}",
+        "Un vistazo a cómo armamos cada proyecto"
+      ],
+      persona: [
+        "Detrás de cada evento hay alguien que cuida cada detalle",
+        "Hoy te presentamos a quien está detrás de {negocio}"
+      ],
+      pregunta: [
+        "¿Qué fecha tienes en mente?",
+        "¿Cómo te imaginas ese día?"
+      ],
+      confianza: [
+        "Llevamos tiempo cuidando los mismos detalles, proyecto a proyecto",
+        "En {negocio} nada queda librado al azar"
+      ]
+    },
     footers: [
       "📍 {negocio} · Consulta disponibilidad",
       "Reserva tu fecha",
@@ -975,36 +1041,40 @@ const SECTORES = {
       "Fechas disponibles este trimestre",
       "Primera reunión sin compromiso"
     ],
-    captions: [
-      "En {negocio} nos encanta convertir un buen momento en algo que se pueda recordar siempre. Escríbenos.",
-      "Cada proyecto en {negocio} empieza escuchando lo que tú tienes en mente. Consulta disponibilidad.",
-      "Si tienes una fecha especial en el calendario, en {negocio} podemos ayudarte a prepararla.",
-      "Los detalles son los que se recuerdan. Así trabajamos en {negocio}.",
-      "En {negocio} cuidamos cada proyecto como si fuera el más importante del año."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy tenemos fechas disponibles. Escríbenos y reserva la tuya en {negocio}."],
+      proceso: ["Un vistazo a cómo preparamos cada detalle en {negocio}."],
+      persona: ["Detrás de cada evento en {negocio} hay alguien que cuida cada detalle, incluso los que no se ven."],
+      pregunta: ["¿Cómo te imaginas ese día? Cuéntanos y lo hacemos realidad."],
+      confianza: ["En {negocio} nada queda librado al azar. Proyecto a proyecto, siempre igual de cuidado."]
+    }
   },
   general: {
     pattern: 'blobs',
     label: 'General', icon: '🏪', accent: '#c8a96e',
     font: "'DM Sans', sans-serif", fontWeight: 700, fontStyle: 'normal',
-    openers: [
-      "Hoy en {negocio} tenemos algo para ti",
-      "Lo nuevo ya está disponible en {negocio}",
-      "{negocio} sigue mejorando cada día",
-      "Un buen motivo para pasar por {negocio} hoy",
-      "Gracias por seguir eligiéndonos",
-      "En {negocio} cuidamos cada detalle",
-      "Hoy tenemos novedades para contarte",
-      "{negocio} está aquí para ayudarte",
-      "Cada día trabajamos para darte lo mejor",
-      "Esto es lo que te estábamos preparando",
-      "Hoy queremos contarte algo nuevo",
-      "En {negocio} cada cliente importa de verdad",
-      "Seguimos aquí, haciendo las cosas bien",
-      "Gracias por acompañarnos un día más",
-      "Lo de siempre, con el cuidado de siempre",
-      "En {negocio} las cosas se hacen con ganas"
-    ],
+    openersByFamily: {
+      producto: [
+        "Hoy tenemos algo para ti en {negocio}",
+        "Esto es lo nuevo en {negocio}"
+      ],
+      proceso: [
+        "Un vistazo a cómo trabajamos en {negocio}",
+        "Así preparamos lo que hoy te mostramos"
+      ],
+      persona: [
+        "Detrás de {negocio} hay alguien que se toma esto en serio",
+        "Hoy te presentamos a quien está detrás de {negocio}"
+      ],
+      pregunta: [
+        "¿Qué te gustaría ver más por aquí?",
+        "¿Hace cuánto no pasas por {negocio}?"
+      ],
+      confianza: [
+        "Llevamos tiempo haciendo las cosas de la misma manera",
+        "En {negocio} cada cliente importa de verdad"
+      ]
+    },
     footers: [
       "📍 {negocio} · Contáctanos",
       "Escríbenos para más información",
@@ -1015,13 +1085,13 @@ const SECTORES = {
       "Escríbenos, respondemos rápido",
       "Consulta sin compromiso"
     ],
-    captions: [
-      "En {negocio} seguimos trabajando cada día para ofrecerte lo mejor. Escríbenos si tienes alguna pregunta.",
-      "Gracias por confiar en {negocio}. Hoy tenemos novedades que queremos compartir contigo.",
-      "Si todavía no nos conoces, en {negocio} estaremos encantados de atenderte.",
-      "Cada detalle en {negocio} está pensado para ti. Cuéntanos qué te parece.",
-      "Seguimos aquí, en {negocio}, listos para ayudarte con lo que necesites."
-    ]
+    captionsByFamily: {
+      producto: ["Hoy tenemos algo nuevo para ti. Escríbenos y te contamos más sobre {negocio}."],
+      proceso: ["Un vistazo a cómo trabajamos cada día en {negocio}."],
+      persona: ["Detrás de {negocio} hay alguien que se toma esto en serio, todos los días."],
+      pregunta: ["¿Qué te gustaría ver más por aquí? Te leemos."],
+      confianza: ["Seguimos haciendo las cosas de la misma manera en {negocio}, con el mismo cuidado de siempre."]
+    }
   }
 };
 
@@ -1039,6 +1109,7 @@ const COLOR_SWATCHES = ['#d9714e', '#b98bb0', '#c8a96e', '#5590e0', '#55b87a', '
 const state = {
   format: 'historia',
   familyIndex: 0,
+  ideaUsedToday: false,
   photoScale: 1,
   photoOffsetX: 0,
   photoOffsetY: 0,
@@ -1266,26 +1337,50 @@ function pickFromBank(type) {
   return arr[idx];
 }
 
+// Igual que pickFromBank, pero eligiendo dentro de la familia del día (Producto, Proceso...),
+// no de todo el banco mezclado — así la frase de verdad corresponde a la idea que se mostró.
+function pickFromBankByFamily(type, familyKey) {
+  const sector = SECTORES[state.sector];
+  const bank = sector[type + 'ByFamily'];
+  const arr = (bank && bank[familyKey]) ? bank[familyKey] : sector[type === 'openers' ? 'openers' : 'captions'];
+  const usedKey = state.sector + ':' + type + ':' + familyKey;
+  if (!state.usedIndices[usedKey]) state.usedIndices[usedKey] = [];
+  let used = state.usedIndices[usedKey];
+  if (used.length >= arr.length) used = [];
+  let idx;
+  do { idx = Math.floor(Math.random() * arr.length); } while (used.includes(idx));
+  used.push(idx);
+  state.usedIndices[usedKey] = used;
+  return arr[idx];
+}
+
 function fillTemplate(str) {
   const name = document.getElementById('businessName').value.trim() || 'nuestro negocio';
   return str.replace(/\{negocio\}/g, name);
 }
 
 function generateAuto() {
-  const main = fillTemplate(pickFromBank('openers'));
+  const familyKey = getCurrentFamily().key;
+  const main = fillTemplate(pickFromBankByFamily('openers', familyKey));
   const footer = fillTemplate(pickFromBank('footers'));
-  const caption = fillTemplate(pickFromBank('captions'));
+  const caption = fillTemplate(pickFromBankByFamily('captions', familyKey));
   document.getElementById('mainPhrase').value = main;
   document.getElementById('footerPhrase').value = footer;
   document.getElementById('captionText').value = caption;
   renderCanvas();
   toast('Publicación de hoy lista ✦', 'success');
-  state.familyIndex = (state.familyIndex + 1) % FAMILIES.length;
-  updateIdeaCard();
+  markIdeaAsUsed();
   saveProfile();
 }
 
 document.getElementById('createBtn').addEventListener('click', generateAuto);
+
+document.getElementById('nextIdeaBtn').addEventListener('click', () => {
+  state.familyIndex = (state.familyIndex + 1) % FAMILIES.length;
+  state.ideaUsedToday = false;
+  updateIdeaCard();
+  saveProfile();
+});
 
 // ─── DIBUJO DEL CANVAS ──────────────────────────────────────────────────────
 function hexToRgb(hex) {
