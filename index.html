@@ -430,7 +430,7 @@ input[type="range"]::-moz-range-thumb {
         Arrastra una imagen o haz clic para subirla
       </div>
       <div class="field-hint">Y si hoy no tienes tiempo, no te preocupes: la creamos igual, sin foto.</div>
-      <input type="file" id="imageInput" accept="image/*" style="display:none">
+      <input type="file" id="imageInput" style="display:none">
     </div>
 
   </div>
@@ -1224,6 +1224,10 @@ dropZone.addEventListener('drop', e => {
 });
 
 function handlePhotoFile(file) {
+  if (!file.type.startsWith('image/')) {
+    toast('Ese archivo no es una imagen — prueba con una foto', 'error');
+    return;
+  }
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
