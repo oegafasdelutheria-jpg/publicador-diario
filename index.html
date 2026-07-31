@@ -488,6 +488,12 @@ input[type="range"]::-moz-range-thumb {
         </div>
 
         <div class="field-group">
+          <label>Borde tipo cuadro</label>
+          <div class="color-row" id="borderColorRow"></div>
+          <div class="field-hint">Un margen alrededor de toda la imagen, como el marco de un cuadro.</div>
+        </div>
+
+        <div class="field-group">
           <label>Dónde va el texto</label>
           <div class="position-grid">
             <button class="pos-btn" data-pos="top">Arriba</button>
@@ -1118,6 +1124,7 @@ const state = {
   accentColor: SECTORES.general.accent,
   textColorMode: 'auto',
   customTextColor: '#ffffff',
+  borderColor: 'none',
   position: 'bottom',
   fontKey: 'auto',
   photoImg: null,
@@ -1206,6 +1213,7 @@ function buildColorRow() {
       row.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
       sw.classList.add('selected');
       renderCanvas();
+      scrollToCanvasIfNeeded();
       saveProfile();
     });
   });
@@ -1213,6 +1221,7 @@ function buildColorRow() {
     state.accentColor = e.target.value;
     row.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
     renderCanvas();
+    scrollToCanvasIfNeeded();
     saveProfile();
   });
 }
@@ -1232,6 +1241,7 @@ function buildTextColorRow() {
       row.querySelectorAll('[data-textmode]').forEach(s => s.classList.remove('selected'));
       el.classList.add('selected');
       renderCanvas();
+      scrollToCanvasIfNeeded();
       saveProfile();
     });
   });
@@ -1240,6 +1250,34 @@ function buildTextColorRow() {
     state.textColorMode = 'custom';
     row.querySelectorAll('[data-textmode]').forEach(s => s.classList.remove('selected'));
     renderCanvas();
+    scrollToCanvasIfNeeded();
+    saveProfile();
+  });
+}
+
+function buildBorderColorRow() {
+  const row = document.getElementById('borderColorRow');
+  const isSelected = v => state.borderColor === v ? 'selected' : '';
+  row.innerHTML = `
+    <button type="button" class="format-btn ${isSelected('none')}" data-border="none" style="padding:8px 12px;">Sin borde</button>
+    <div class="swatch ${isSelected('#ffffff')}" data-border="#ffffff" style="background:#ffffff; border:1px solid var(--border-hover);"></div>
+    <input type="color" class="color-custom" id="customBorderColor" value="${state.borderColor !== 'none' ? state.borderColor : '#ffffff'}">
+  `;
+  row.querySelectorAll('[data-border]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.borderColor = el.dataset.border;
+      row.querySelectorAll('[data-border]').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+      renderCanvas();
+      scrollToCanvasIfNeeded();
+      saveProfile();
+    });
+  });
+  document.getElementById('customBorderColor').addEventListener('input', e => {
+    state.borderColor = e.target.value;
+    row.querySelectorAll('[data-border]').forEach(s => s.classList.remove('selected'));
+    renderCanvas();
+    scrollToCanvasIfNeeded();
     saveProfile();
   });
 }
@@ -1247,7 +1285,7 @@ function buildTextColorRow() {
 function buildFontSelect() {
   const sel = document.getElementById('fontSelect');
   sel.innerHTML = FONT_OPTIONS.map(f => `<option value="${f.key}">${f.label}</option>`).join('');
-  sel.addEventListener('change', e => { state.fontKey = e.target.value; renderCanvas(); saveProfile(); });
+  sel.addEventListener('change', e => { state.fontKey = e.target.value; renderCanvas(); scrollToCanvasIfNeeded(); saveProfile(); });
 }
 
 function applyFormat(key) {
@@ -1262,7 +1300,7 @@ function applyFormat(key) {
 }
 
 document.querySelectorAll('#formatGrid .format-btn').forEach(btn => {
-  btn.addEventListener('click', () => { applyFormat(btn.dataset.format); saveProfile(); });
+  btn.addEventListener('click', () => { applyFormat(btn.dataset.format); scrollToCanvasIfNeeded(); saveProfile(); });
 });
 
 document.querySelectorAll('.pos-btn').forEach(btn => {
@@ -1271,6 +1309,7 @@ document.querySelectorAll('.pos-btn').forEach(btn => {
     document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     renderCanvas();
+    scrollToCanvasIfNeeded();
     saveProfile();
   });
 });
@@ -1374,9 +1413,20 @@ function generateAuto() {
   saveProfile();
 }
 
+// Sube hasta la vista previa solo si en este momento no se ve en pantalla —
+// así no interrumpe cuando alguien está ajustando varias cosas seguidas y ya la ve.
+function scrollToCanvasIfNeeded() {
+  const el = document.querySelector('.canvas-wrap');
+  const r = el.getBoundingClientRect();
+  const fullyVisible = r.top >= 0 && r.bottom <= window.innerHeight;
+  if (!fullyVisible) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 document.getElementById('createBtn').addEventListener('click', () => {
   generateAuto();
-  document.querySelector('.canvas-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  scrollToCanvasIfNeeded();
 });
 
 document.getElementById('nextIdeaBtn').addEventListener('click', () => {
@@ -1571,6 +1621,23 @@ function renderCanvas() {
   const accent = state.accentColor;
 
   ctx.clearRect(0, 0, W, H);
+
+  // Borde tipo marco de cuadro: si está activo, pintamos todo el lienzo con
+  // el color del borde, y "encogemos" el resto del dibujo hacia el centro,
+  // sin tocar ningún otro cálculo (zoom, arrastre, posición, franja siguen
+  // funcionando exactamente igual, solo que dibujan en un lienzo más chico).
+  const hasBorder = state.borderColor && state.borderColor !== 'none';
+  let borderInset = 0;
+  if (hasBorder) {
+    ctx.fillStyle = state.borderColor;
+    ctx.fillRect(0, 0, W, H);
+    borderInset = W * 0.055;
+    ctx.save();
+    ctx.translate(borderInset, borderInset);
+    const scale = (W - borderInset * 2) / W;
+    ctx.scale(scale, scale);
+  }
+
   drawBackground(ctx, W, H);
 
   // Tinte general con el color elegido, para que la foto "vaya acorde"
@@ -1646,7 +1713,7 @@ function renderCanvas() {
     ctx.fillStyle = hexToRgba(accent, 0.92);
     ctx.fillRect(0, barTop, W, H - barTop);
     ctx.fillStyle = getContrastText(accent);
-    ctx.font = "700 34px 'DM Sans', sans-serif";
+    ctx.font = "700 35px 'DM Sans', sans-serif";
     ctx.textAlign = 'center';
     const footerLines = wrapLines(ctx, footerPhrase, W * 0.86);
     const footerLineHeight = 42;
@@ -1654,13 +1721,17 @@ function renderCanvas() {
     footerLines.forEach(line => { ctx.fillText(line, W / 2, fy); fy += footerLineHeight; });
   }
 
-  // Marco decorativo en el color elegido
-  const pad = 34;
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 6;
-  ctx.globalAlpha = 0.85;
-  ctx.strokeRect(pad, pad, W - pad * 2, H - pad * 2);
-  ctx.globalAlpha = 1;
+  // Marco decorativo fino — solo si no hay borde tipo cuadro (para no duplicar el efecto)
+  if (!hasBorder) {
+    const pad = 34;
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 6;
+    ctx.globalAlpha = 0.85;
+    ctx.strokeRect(pad, pad, W - pad * 2, H - pad * 2);
+    ctx.globalAlpha = 1;
+  }
+
+  if (hasBorder) ctx.restore();
 }
 
 // ─── ARRASTRAR LA FOTO PARA ENCUADRARLA ────────────────────────────────────
@@ -1739,7 +1810,8 @@ function saveProfile() {
       format: state.format,
       familyIndex: state.familyIndex,
       textColorMode: state.textColorMode,
-      customTextColor: state.customTextColor
+      customTextColor: state.customTextColor,
+      borderColor: state.borderColor
     }));
     document.getElementById('forgetProfile').style.display = 'block';
   } catch (e) { /* localStorage no disponible: seguimos sin recordar, sin romper la app */ }
@@ -1767,6 +1839,7 @@ document.getElementById('forgetProfile').addEventListener('click', () => {
 buildSectorGrid();
 buildColorRow();
 buildTextColorRow();
+buildBorderColorRow();
 buildFontSelect();
 
 const savedProfile = loadProfile();
@@ -1790,6 +1863,8 @@ if (savedProfile) {
   const customColorEl = document.getElementById('customColor');
   if (customColorEl) customColorEl.value = state.accentColor;
   buildTextColorRow();
+  state.borderColor = savedProfile.borderColor || 'none';
+  buildBorderColorRow();
 
   applyFormat(savedProfile.format && FORMATS[savedProfile.format] ? savedProfile.format : 'historia');
   document.getElementById('forgetProfile').style.display = 'block';
