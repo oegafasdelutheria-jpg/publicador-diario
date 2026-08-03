@@ -2259,19 +2259,17 @@ async function startReelCamera() {
   reelState.cameraReady = false;
   updateReelRecordButtonAvailability();
   try {
-    // Formato vertical 9:16 de verdad (como Historias/Reels), no cuadrado.
-    // Usamos solo "ideal" (preferencia), nunca "exact": pedir una proporción
-    // exacta es lo que antes hacía que algunos móviles aplicaran zoom digital
-    // para encajarla. Con "ideal" el navegador respeta mejor el encuadre
-    // natural de la cámara. Resolución moderada + tope de fps para que vaya
-    // fluido: pedir más de lo que el móvil puede codificar en tiempo real es
-    // lo que produce vídeo a tirones.
+    // Dejamos de pedirle a la cámara un tamaño o proporción concretos —
+    // eso es lo que dispara el "resizeMode: crop-and-scale" que aplican
+    // muchos móviles para encajar la medida pedida, y es lo que causa el
+    // zoom digital. resizeMode:'none' le dice explícitamente que no recorte
+    // ni escale nada: entrega el fotograma tal cual lo capta el sensor.
+    // A cambio, el vídeo puede no salir en 9:16 exacto — sale en la
+    // proporción nativa de la cámara de ese móvil.
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: reelState.facingMode,
-        aspectRatio: { ideal: 9 / 16 },
-        width: { ideal: 720 },
-        height: { ideal: 1280 },
+        resizeMode: { ideal: 'none' },
         frameRate: { ideal: 30, max: 30 }
       },
       audio: true
