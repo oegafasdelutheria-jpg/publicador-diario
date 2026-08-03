@@ -2165,11 +2165,18 @@ function reelSupported() {
 }
 
 function pickReelMimeType() {
+  // mp4 primero, por encima de todo: Instagram (Historias/Reels) no admite
+  // subir directamente un .webm — el archivo se descarga bien y se reproduce
+  // en el navegador, pero Instagram lo rechaza o lo muestra con "0:00" de
+  // duración. Sin mp4 la función no sirve para lo que de verdad importa.
   const candidates = [
-    'video/webm;codecs=vp8,opus',  // formato nativo de MediaRecorder en Chrome — el más probado
+    'video/mp4;codecs="avc1.42E01E, mp4a.40.2"',
+    'video/mp4;codecs=avc1,mp4a',
+    'video/mp4;codecs=h264,aac',
+    'video/mp4',
+    'video/webm;codecs=vp8,opus',  // último recurso — se reproduce bien, pero puede que Instagram no lo admita
     'video/webm;codecs=vp9,opus',
-    'video/webm',
-    'video/mp4;codecs=h264,aac'    // último recurso — solo hace falta en Safari/iOS, donde no hay webm
+    'video/webm'
   ];
   for (const type of candidates) {
     if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) return type;
@@ -2417,6 +2424,9 @@ function onReelRecordingStopped() {
   reelVideo.loop = true;
   reelVideo.play().catch(() => {});
   reelOverlay.classList.add('is-review');
+  if (!(reelState.mimeType || '').includes('mp4')) {
+    toast('Tu navegador no permite grabar en mp4 aquí — puede que Instagram no admita este vídeo directamente.', 'info');
+  }
 }
 
 function retakeReel() {
