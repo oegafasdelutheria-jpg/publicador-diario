@@ -6,7 +6,7 @@
 // subí también en 1 el número de acá abajo (v1 -> v2 -> v3...).
 // Eso fuerza a que todos los que ya tienen la app instalada reciban
 // la versión nueva en la próxima apertura, sin tener que limpiar caché a mano.
-const CACHE_NAME = 'publicador-diario-v3';
+const CACHE_NAME = 'publicador-diario-v4';
 const APP_SHELL = [
   './',
   './index.html',
