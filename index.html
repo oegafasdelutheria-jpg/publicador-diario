@@ -2144,7 +2144,8 @@ const reelState = {
   scrollReadSeconds: 6,
   recordingMaxSeconds: REEL_ABSOLUTE_MAX_SECONDS,
   cameraReady: false,
-  facingMode: 'user'
+  facingMode: 'user',
+  actualDurationSeconds: 0
 };
 
 const reelOverlay = document.getElementById('reelOverlay');
@@ -2403,6 +2404,7 @@ function startReelRecording() {
 function finishReelRecording() {
   if (!reelState.recording) return;
   reelState.recording = false;
+  reelState.actualDurationSeconds = Math.max(0.5, (performance.now() - reelState.recordStartMs) / 1000);
   clearInterval(reelState.timerId);
   cancelAnimationFrame(reelState.rafId);
   resetTeleprompter();
@@ -2412,9 +2414,100 @@ function finishReelRecording() {
   if (reelState.recorder && reelState.recorder.state !== 'inactive') reelState.recorder.stop();
 }
 
-function onReelRecordingStopped() {
+// Chrome no rellena bien la duración en la cabecera de los .mp4 que graba
+// con MediaRecorder (queda en 0 o mal calculada) — es un fallo conocido y
+// documentado de Chrome, no algo que dependa del móvil. El vídeo en sí está
+// completo (por eso se ve entero en la mayoría de reproductores, que
+// ignoran ese dato), pero Instagram sí confía en la cabecera y corta ahí.
+// Esto corrige esos números a mano, sin volver a codificar nada del vídeo.
+function fixMp4DurationInPlace(buffer, durationSeconds) {
+  const view = new DataView(buffer);
+  const len = buffer.byteLength;
+  let movieTimescale = null;
+
+  function readBoxHeader(offset) {
+    let size = view.getUint32(offset);
+    const type = String.fromCharCode(
+      view.getUint8(offset + 4), view.getUint8(offset + 5),
+      view.getUint8(offset + 6), view.getUint8(offset + 7)
+    );
+    let headerSize = 8;
+    if (size === 1) {
+      const hi = view.getUint32(offset + 8);
+      const lo = view.getUint32(offset + 12);
+      size = hi * 4294967296 + lo;
+      headerSize = 16;
+    } else if (size === 0) {
+      size = len - offset;
+    }
+    return { type, size, headerSize, contentStart: offset + headerSize, end: offset + size };
+  }
+
+  function writeDuration(off, size, valueSeconds, timescale) {
+    const value = Math.round(valueSeconds * timescale);
+    if (size === 8) {
+      view.setUint32(off, Math.floor(value / 4294967296));
+      view.setUint32(off + 4, value >>> 0);
+    } else {
+      view.setUint32(off, value >>> 0);
+    }
+  }
+
+  function patchMvhd(box) {
+    const version = view.getUint8(box.contentStart);
+    const timescaleOff = box.contentStart + 4 + (version === 1 ? 16 : 8);
+    const durationOff = timescaleOff + 4;
+    movieTimescale = view.getUint32(timescaleOff);
+    writeDuration(durationOff, version === 1 ? 8 : 4, durationSeconds, movieTimescale);
+  }
+
+  function patchTkhd(box) {
+    if (!movieTimescale) return; // tkhd va después de mvhd en el orden habitual de Chrome
+    const version = view.getUint8(box.contentStart);
+    const durationOff = box.contentStart + 4 + (version === 1 ? 24 : 16);
+    writeDuration(durationOff, version === 1 ? 8 : 4, durationSeconds, movieTimescale);
+  }
+
+  function patchMdhd(box) {
+    const version = view.getUint8(box.contentStart);
+    const timescaleOff = box.contentStart + 4 + (version === 1 ? 16 : 8);
+    const durationOff = timescaleOff + 4;
+    const trackTimescale = view.getUint32(timescaleOff);
+    writeDuration(durationOff, version === 1 ? 8 : 4, durationSeconds, trackTimescale);
+  }
+
+  function walk(start, end) {
+    let offset = start;
+    while (offset + 8 <= end) {
+      const box = readBoxHeader(offset);
+      if (box.size < box.headerSize || box.end > end || box.size <= 0) break;
+      if (box.type === 'moov' || box.type === 'trak' || box.type === 'mdia') walk(box.contentStart, box.end);
+      else if (box.type === 'mvhd') patchMvhd(box);
+      else if (box.type === 'tkhd') patchTkhd(box);
+      else if (box.type === 'mdhd') patchMdhd(box);
+      offset = box.end;
+    }
+  }
+
+  walk(0, len);
+}
+
+async function buildReelBlob() {
+  const rawBlob = new Blob(reelState.chunks, { type: reelState.mimeType || 'video/webm' });
+  if (!(reelState.mimeType || '').includes('mp4')) return rawBlob;
+  try {
+    const buffer = await rawBlob.arrayBuffer();
+    fixMp4DurationInPlace(buffer, reelState.actualDurationSeconds || 1);
+    return new Blob([buffer], { type: rawBlob.type });
+  } catch (e) {
+    console.warn('No se pudo corregir la duración del mp4:', e);
+    return rawBlob; // si algo falla, se queda el archivo tal cual — no rompemos nada
+  }
+}
+
+async function onReelRecordingStopped() {
   stopReelStream();
-  const blob = new Blob(reelState.chunks, { type: reelState.mimeType || 'video/webm' });
+  const blob = await buildReelBlob();
   if (reelState.blobUrl) URL.revokeObjectURL(reelState.blobUrl);
   reelState.blobUrl = URL.createObjectURL(blob);
   reelVideo.classList.add('is-review');
