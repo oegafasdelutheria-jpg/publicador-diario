@@ -455,11 +455,40 @@ input[type="range"]::-moz-range-thumb {
 @keyframes reelBlink { 50% { opacity: 0.2; } }
 
 .reel-camera-wrap {
+  display: none;
   position: relative;
   flex: 1;
   overflow: hidden;
   background: #000;
 }
+.reel-overlay.is-camera .reel-camera-wrap { display: block; }
+
+.reel-script-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  padding: 74px 20px 24px;
+  color: #fff;
+}
+.reel-overlay.is-camera .reel-script-panel { display: none; }
+.reel-script-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 19px; }
+.reel-script-hint { font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: -6px; }
+.reel-script-textarea {
+  flex: 1;
+  resize: none;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 14px;
+  padding: 14px;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.reel-script-textarea:focus { outline: none; border-color: rgba(255,255,255,0.4); }
+.reel-script-meta { font-size: 12px; color: rgba(255,255,255,0.55); text-align: right; }
+
 .reel-video {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
@@ -488,19 +517,21 @@ input[type="range"]::-moz-range-thumb {
   line-height: 1.5;
   color: #ffffff;
   text-shadow: 0 2px 10px rgba(0,0,0,0.65);
-  transition: top linear;
+  transform: translateY(0);
+  will-change: transform;
 }
 
 .reel-bottombar {
+  display: none;
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
   padding: 22px 16px 30px;
   background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
 }
+.reel-overlay.is-camera .reel-bottombar { display: flex; }
 .reel-hint {
   color: rgba(255,255,255,0.75);
   font-size: 12.5px;
@@ -546,6 +577,23 @@ input[type="range"]::-moz-range-thumb {
 }
 .reel-permission-msg.is-visible { display: flex; }
 .reel-permission-msg .btn { width: auto; padding: 10px 20px; }
+
+/* Se muestra en pantalla durante los últimos segundos, en espejo exacto de
+   lo que en ese mismo instante se está dibujando en el vídeo que se graba —
+   así la persona ve que se está añadiendo su cierre de marca, en vez de
+   quedarse mirando su propia cámara congelada sin explicación. */
+.reel-outro-card {
+  display: none;
+  position: absolute; inset: 0;
+  flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 30px;
+  z-index: 4;
+  animation: reelOutroFade 0.4s ease;
+}
+.reel-outro-card.is-visible { display: flex; }
+.reel-outro-name { font-family: 'Fraunces', serif; font-weight: 800; font-size: 34px; margin-bottom: 10px; }
+.reel-outro-sub { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px; opacity: 0.85; }
+@keyframes reelOutroFade { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 380px) {
   .reel-teleprompter-track { font-size: 19px; }
@@ -691,6 +739,14 @@ input[type="range"]::-moz-range-thumb {
     <div style="width:38px;"></div>
   </div>
 
+  <div class="reel-script-panel" id="reelScriptPanel">
+    <div class="reel-script-title">Tu guion</div>
+    <div class="reel-script-hint">Este es el que genera la app, pero es tuyo: escribe el tuyo, pega uno que hayas hecho con una IA, o déjalo tal cual.</div>
+    <textarea class="reel-script-textarea" id="reelScriptInput" placeholder="Escribe o pega aquí lo que vas a decir…"></textarea>
+    <div class="reel-script-meta" id="reelScriptMeta">≈ 0s hablado</div>
+    <button type="button" class="btn btn-primary" id="reelStartCameraBtn">Grabar con este guion</button>
+  </div>
+
   <div class="reel-camera-wrap">
     <video class="reel-video" id="reelVideo" autoplay playsinline muted></video>
     <div class="reel-teleprompter" id="reelTeleprompter">
@@ -700,6 +756,10 @@ input[type="range"]::-moz-range-thumb {
       <div style="font-size:34px;">🎥</div>
       <div id="reelPermissionText">Necesitamos permiso de cámara y micrófono para grabar aquí.</div>
       <button type="button" class="btn btn-primary" id="reelRetryPermissionBtn">Reintentar</button>
+    </div>
+    <div class="reel-outro-card" id="reelOutroCard">
+      <div class="reel-outro-name" id="reelOutroName">Tu negocio</div>
+      <div class="reel-outro-sub">Hecho con Publicador Diario</div>
     </div>
   </div>
 
@@ -2069,8 +2129,18 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 // Solo reutiliza el guion ya generado por la app (frase principal + caption
 // de la familia del día) — no inventa texto nuevo. Todo client-side: cámara,
 // grabación y descarga, sin servidor.
-const REEL_MAX_SECONDS = 60;
-const REEL_WPM = 130; // ritmo de lectura hablada, para calcular la velocidad del scroll
+//
+// La grabación no captura el stream de la cámara directamente: se dibuja
+// fotograma a fotograma sobre un canvas oculto (recortado nosotros mismos,
+// sin depender del zoom digital del driver de la cámara) y se graba ESE
+// canvas. Esto permite además añadir un cierre de marca al final, dentro
+// del mismo archivo de vídeo, sin necesidad de servidor ni de unir vídeos.
+const REEL_ABSOLUTE_MAX_SECONDS = 90; // techo de seguridad (límite habitual de Reels)
+const REEL_MIN_SECONDS = 6;
+const REEL_OUTRO_SECONDS = 2.5;
+const REEL_WPM = 95; // ritmo de lectura hablada, algo pausado a propósito
+const REEL_CANVAS_W = 1080;
+const REEL_CANVAS_H = 1920;
 
 const reelState = {
   stream: null,
@@ -2079,18 +2149,31 @@ const reelState = {
   mimeType: '',
   blobUrl: null,
   timerId: null,
-  scrollTimeoutId: null,
+  rafId: null,
   seconds: 0,
-  recording: false
+  recording: false,
+  phase: 'camera', // 'camera' | 'outro'
+  recordStartMs: 0,
+  outroStartMs: 0,
+  scrollDistance: 0,
+  scrollReadSeconds: 6,
+  recordingMaxSeconds: REEL_ABSOLUTE_MAX_SECONDS,
+  canvas: null,
+  ctx: null
 };
 
 const reelOverlay = document.getElementById('reelOverlay');
+const reelScriptInput = document.getElementById('reelScriptInput');
+const reelScriptMeta = document.getElementById('reelScriptMeta');
 const reelVideo = document.getElementById('reelVideo');
 const reelTimer = document.getElementById('reelTimer');
 const reelRecordBtn = document.getElementById('reelRecordBtn');
+const reelTeleprompter = document.getElementById('reelTeleprompter');
 const reelTeleprompterTrack = document.getElementById('reelTeleprompterTrack');
 const reelPermissionMsg = document.getElementById('reelPermissionMsg');
 const reelPermissionText = document.getElementById('reelPermissionText');
+const reelOutroCard = document.getElementById('reelOutroCard');
+const reelOutroName = document.getElementById('reelOutroName');
 const reelHint = document.getElementById('reelHint');
 
 function reelSupported() {
@@ -2099,9 +2182,9 @@ function reelSupported() {
 
 function pickReelMimeType() {
   const candidates = [
-    'video/mp4;codecs=h264,aac',
+    'video/mp4;codecs=h264,aac',   // Safari/iOS
+    'video/webm;codecs=vp8,opus',  // más ligero de codificar que vp9 → menos tirones
     'video/webm;codecs=vp9,opus',
-    'video/webm;codecs=vp8,opus',
     'video/webm'
   ];
   for (const type of candidates) {
@@ -2122,31 +2205,63 @@ function buildReelScript() {
   return fillTemplate([openerRaw, captionRaw].filter(Boolean).join('. '));
 }
 
+function estimateSpokenSeconds(text) {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return words / REEL_WPM * 60;
+}
+
+function updateReelScriptMeta() {
+  const secs = Math.round(estimateSpokenSeconds(reelScriptInput.value));
+  reelScriptMeta.textContent = secs > 0 ? `≈ ${secs}s hablado` : '';
+}
+
 function openReelOverlay() {
   if (!reelSupported()) {
     toast('Tu navegador no admite grabar vídeo aquí. Prueba con Chrome actualizado.', 'error');
     return;
   }
   reelOverlay.classList.add('is-open');
-  reelOverlay.classList.remove('is-review');
+  reelOverlay.classList.remove('is-camera', 'is-review');
   reelPermissionMsg.classList.remove('is-visible');
-  reelTeleprompterTrack.textContent = buildReelScript();
+  reelOutroCard.classList.remove('is-visible');
+  reelScriptInput.value = buildReelScript();
+  updateReelScriptMeta();
+}
+
+function startReelFromScript() {
+  const script = reelScriptInput.value.trim();
+  if (!script) {
+    toast('Escribe o pega algo para leer mientras grabas.', 'info');
+    return;
+  }
+  reelTeleprompterTrack.textContent = script;
+  const estimated = estimateSpokenSeconds(script);
+  reelState.scrollReadSeconds = Math.max(4, estimated);
+  reelState.recordingMaxSeconds = Math.min(REEL_ABSOLUTE_MAX_SECONDS, Math.max(REEL_MIN_SECONDS, estimated + 8));
+  reelOverlay.classList.add('is-camera');
   startReelCamera();
 }
 
 function closeReelOverlay() {
   stopReelStream();
+  cancelAnimationFrame(reelState.rafId);
   clearInterval(reelState.timerId);
-  clearTimeout(reelState.scrollTimeoutId);
+  if (reelState.recorder && reelState.recorder.state !== 'inactive') {
+    reelState.recorder.onstop = null; // no queremos pasar a revisión al cerrar
+    reelState.recorder.stop();
+  }
   if (reelState.blobUrl) { URL.revokeObjectURL(reelState.blobUrl); reelState.blobUrl = null; }
   reelState.chunks = [];
   reelState.recording = false;
-  reelOverlay.classList.remove('is-open', 'is-review');
+  reelState.phase = 'camera';
+  reelOverlay.classList.remove('is-open', 'is-camera', 'is-review');
   reelRecordBtn.classList.remove('is-rec');
   reelTimer.classList.remove('is-rec');
+  reelOutroCard.classList.remove('is-visible');
   reelVideo.classList.remove('is-review');
   reelVideo.srcObject = null;
   reelVideo.src = '';
+  resetTeleprompter();
 }
 
 function stopReelStream() {
@@ -2159,8 +2274,12 @@ function stopReelStream() {
 async function startReelCamera() {
   stopReelStream();
   try {
+    // Constraints suaves a propósito: pedir una resolución/ratio exactos
+    // hace que muchos móviles apliquen zoom digital para encajarlo, y la
+    // imagen se ve "pegada". Pedimos solo lo ideal y recortamos nosotros
+    // mismos en el canvas al grabar, con la imagen completa que da la cámara.
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1920 } },
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } },
       audio: true
     });
     reelState.stream = stream;
@@ -2176,26 +2295,8 @@ async function startReelCamera() {
   }
 }
 
-function startTeleprompterScroll() {
-  const track = reelTeleprompterTrack;
-  track.style.transition = 'none';
-  track.style.top = '100%';
-  const words = track.textContent.trim().split(/\s+/).filter(Boolean).length;
-  const readSeconds = Math.max(4, Math.min(REEL_MAX_SECONDS - 2, (words / REEL_WPM) * 60));
-  // pequeña pausa antes de arrancar, para dar tiempo a coger aire
-  reelState.scrollTimeoutId = setTimeout(() => {
-    const trackHeight = track.getBoundingClientRect().height;
-    const wrapHeight = track.parentElement.getBoundingClientRect().height;
-    const distance = trackHeight + wrapHeight;
-    track.style.transition = `top ${readSeconds}s linear`;
-    track.style.top = `-${distance}px`;
-  }, 30);
-}
-
 function resetTeleprompter() {
-  clearTimeout(reelState.scrollTimeoutId);
-  reelTeleprompterTrack.style.transition = 'none';
-  reelTeleprompterTrack.style.top = '100%';
+  reelTeleprompterTrack.style.transform = 'translateY(0)';
 }
 
 function updateReelTimerDisplay() {
@@ -2204,42 +2305,154 @@ function updateReelTimerDisplay() {
   reelTimer.textContent = `${m}:${s}`;
 }
 
+// Recorta y dibuja el fotograma de la cámara sobre el canvas de grabación,
+// centrado tipo "cover" (igual que el object-fit:cover del preview), pero
+// calculado a mano para no depender del zoom del driver de la cámara.
+function drawCoverFrame(ctx, video, cw, ch) {
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!vw || !vh) return;
+  const targetRatio = cw / ch;
+  const sourceRatio = vw / vh;
+  let sx, sy, sw, sh;
+  if (sourceRatio > targetRatio) {
+    sh = vh; sw = vh * targetRatio; sy = 0; sx = (vw - sw) / 2;
+  } else {
+    sw = vw; sh = vw / targetRatio; sx = 0; sy = (vh - sh) / 2;
+  }
+  ctx.save();
+  ctx.translate(cw, 0); ctx.scale(-1, 1); // espejo, como se ve la persona a sí misma
+  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
+  ctx.restore();
+}
+
+function drawReelOutroFrame(ctx, cw, ch, progress) {
+  const accent = state.accentColor || '#c8a96e';
+  const grad = ctx.createLinearGradient(0, 0, 0, ch);
+  grad.addColorStop(0, accent);
+  grad.addColorStop(1, '#1c1712');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, cw, ch);
+
+  const fade = Math.min(1, progress / 0.3); // pequeño fundido de entrada
+  ctx.globalAlpha = fade;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = getContrastText(accent);
+
+  const name = document.getElementById('businessName').value.trim() || 'Tu negocio';
+  ctx.font = "800 64px 'Fraunces', serif";
+  ctx.fillText(name, cw / 2, ch / 2 - 20);
+
+  ctx.font = "600 30px 'DM Sans', sans-serif";
+  ctx.globalAlpha = fade * 0.85;
+  ctx.fillText('Hecho con Publicador Diario', cw / 2, ch / 2 + 50);
+
+  // marco fino, como el borde tipo cuadro del modo foto
+  ctx.globalAlpha = fade * 0.9;
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.lineWidth = 6;
+  ctx.strokeRect(40, 40, cw - 80, ch - 80);
+  ctx.globalAlpha = 1;
+}
+
+function reelDrawLoop() {
+  const ctx = reelState.ctx;
+  if (!ctx) return;
+  const now = performance.now();
+
+  if (reelState.phase === 'camera') {
+    drawCoverFrame(ctx, reelVideo, REEL_CANVAS_W, REEL_CANVAS_H);
+    const elapsed = (now - reelState.recordStartMs) / 1000;
+    const startDelay = 0.6; // un respiro antes de que el guion empiece a moverse
+    const progress = Math.max(0, Math.min(1, (elapsed - startDelay) / reelState.scrollReadSeconds));
+    reelTeleprompterTrack.style.transform = `translateY(${-progress * reelState.scrollDistance}px)`;
+  } else if (reelState.phase === 'outro') {
+    const elapsed = (now - reelState.outroStartMs) / 1000;
+    drawReelOutroFrame(ctx, REEL_CANVAS_W, REEL_CANVAS_H, elapsed / REEL_OUTRO_SECONDS);
+  }
+
+  reelState.rafId = requestAnimationFrame(reelDrawLoop);
+}
+
 function startReelRecording() {
   if (!reelState.stream) { toast('Todavía no tenemos acceso a la cámara.', 'error'); return; }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = REEL_CANVAS_W;
+  canvas.height = REEL_CANVAS_H;
+  reelState.canvas = canvas;
+  reelState.ctx = canvas.getContext('2d');
+
+  const canvasStream = canvas.captureStream(30);
+  const audioTrack = reelState.stream.getAudioTracks()[0];
+  if (audioTrack) canvasStream.addTrack(audioTrack);
+
   reelState.mimeType = pickReelMimeType();
   reelState.chunks = [];
   try {
     reelState.recorder = reelState.mimeType
-      ? new MediaRecorder(reelState.stream, { mimeType: reelState.mimeType })
-      : new MediaRecorder(reelState.stream);
+      ? new MediaRecorder(canvasStream, { mimeType: reelState.mimeType })
+      : new MediaRecorder(canvasStream);
   } catch (e) {
     toast('No se ha podido iniciar la grabación en este navegador.', 'error');
     return;
   }
   reelState.recorder.ondataavailable = e => { if (e.data && e.data.size > 0) reelState.chunks.push(e.data); };
   reelState.recorder.onstop = onReelRecordingStopped;
-  reelState.recorder.start();
+
+  // El recorrido del guion (scrollReadSeconds) y el tope de grabación
+  // (recordingMaxSeconds) ya se calcularon en startReelFromScript() a partir
+  // del texto real que la persona dejó en la pantalla anterior.
+  resetTeleprompter();
+  const trackHeight = reelTeleprompterTrack.getBoundingClientRect().height;
+  const wrapHeight = reelTeleprompter.getBoundingClientRect().height;
+  reelState.scrollDistance = trackHeight + wrapHeight;
+
+  reelState.phase = 'camera';
+  reelState.recordStartMs = performance.now();
   reelState.recording = true;
   reelState.seconds = 0;
   updateReelTimerDisplay();
   reelRecordBtn.classList.add('is-rec');
   reelTimer.classList.add('is-rec');
   reelHint.textContent = 'Grabando… toca de nuevo para terminar.';
-  startTeleprompterScroll();
+
+  reelState.recorder.start();
+  reelState.rafId = requestAnimationFrame(reelDrawLoop);
   reelState.timerId = setInterval(() => {
     reelState.seconds++;
     updateReelTimerDisplay();
-    if (reelState.seconds >= REEL_MAX_SECONDS) stopReelRecording();
+    if (reelState.seconds >= reelState.recordingMaxSeconds) beginReelOutro();
   }, 1000);
 }
 
-function stopReelRecording() {
-  if (!reelState.recording) return;
-  reelState.recording = false;
+// Al terminar de hablar (o al llegar al tope de tiempo), no cortamos en seco:
+// seguimos grabando 2-3s más mostrando el cierre de marca dentro del mismo vídeo.
+function beginReelOutro() {
+  if (!reelState.recording || reelState.phase === 'outro') return;
+  reelState.phase = 'outro';
   clearInterval(reelState.timerId);
-  resetTeleprompter();
+  const audioTrack = reelState.stream && reelState.stream.getAudioTracks()[0];
+  if (audioTrack) audioTrack.enabled = false; // silencio limpio durante el cierre
   reelRecordBtn.classList.remove('is-rec');
   reelTimer.classList.remove('is-rec');
+  reelHint.textContent = 'Añadiendo tu cierre de marca…';
+  reelState.outroStartMs = performance.now();
+
+  // Espejo en pantalla de lo que se está grabando en ese instante
+  const accent = state.accentColor || '#c8a96e';
+  reelOutroCard.style.background = `linear-gradient(180deg, ${accent}, #1c1712)`;
+  reelOutroCard.style.color = getContrastText(accent);
+  reelOutroName.textContent = document.getElementById('businessName').value.trim() || 'Tu negocio';
+  reelOutroCard.classList.add('is-visible');
+
+  setTimeout(finishReelRecording, REEL_OUTRO_SECONDS * 1000);
+}
+
+function finishReelRecording() {
+  if (!reelState.recording) return;
+  reelState.recording = false;
+  cancelAnimationFrame(reelState.rafId);
+  resetTeleprompter();
   if (reelState.recorder && reelState.recorder.state !== 'inactive') reelState.recorder.stop();
 }
 
@@ -2259,11 +2472,13 @@ function onReelRecordingStopped() {
 
 function retakeReel() {
   reelOverlay.classList.remove('is-review');
+  reelOutroCard.classList.remove('is-visible');
   reelVideo.loop = false;
   reelVideo.muted = true;
   if (reelState.blobUrl) { URL.revokeObjectURL(reelState.blobUrl); reelState.blobUrl = null; }
   reelVideo.src = '';
   reelState.seconds = 0;
+  reelState.phase = 'camera';
   updateReelTimerDisplay();
   reelHint.textContent = 'Toca para empezar a grabar. El guion irá subiendo solo mientras hablas.';
   startReelCamera();
@@ -2284,17 +2499,20 @@ function downloadReelVideo() {
 
 document.getElementById('openReelBtn').addEventListener('click', openReelOverlay);
 document.getElementById('reelCloseBtn').addEventListener('click', closeReelOverlay);
+document.getElementById('reelStartCameraBtn').addEventListener('click', startReelFromScript);
+reelScriptInput.addEventListener('input', updateReelScriptMeta);
 document.getElementById('reelRetryPermissionBtn').addEventListener('click', startReelCamera);
 document.getElementById('reelRetakeBtn').addEventListener('click', retakeReel);
 document.getElementById('reelDownloadBtn').addEventListener('click', downloadReelVideo);
 reelRecordBtn.addEventListener('click', () => {
-  if (reelState.recording) stopReelRecording();
-  else startReelRecording();
+  if (!reelState.recording) startReelRecording();
+  else if (reelState.phase === 'camera') beginReelOutro();
 });
-// Si el usuario sale de la pestaña/app a mitad de grabación, la cortamos
-// para no dejar la cámara encendida en segundo plano.
+// Si el usuario sale de la pestaña/app a mitad de grabación, cortamos en
+// seco (sin esperar al cierre de marca) para no dejar la cámara encendida
+// en segundo plano ni depender de un requestAnimationFrame pausado.
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && reelState.recording) stopReelRecording();
+  if (document.hidden && reelState.recording) finishReelRecording();
 });
 </script>
 </body>
