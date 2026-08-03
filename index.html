@@ -545,7 +545,9 @@ input[type="range"]::-moz-range-thumb {
   background: rgba(255,255,255,0.15);
   cursor: pointer;
   position: relative;
+  transition: opacity 0.2s;
 }
+.reel-record-btn:disabled { cursor: not-allowed; }
 .reel-record-btn::after {
   content: '';
   position: absolute; inset: 8px;
@@ -2109,17 +2111,18 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 // de la familia del día) — no inventa texto nuevo. Todo client-side: cámara,
 // grabación y descarga, sin servidor.
 //
-// La grabación no captura el stream de la cámara directamente: se dibuja
-// fotograma a fotograma sobre un canvas oculto (recortado nosotros mismos,
-// sin depender del zoom digital del driver de la cámara) y se graba ESE
-// canvas. Esto permite dibujar encima, en cada fotograma, el mismo marco
-// y pie de foto que ya usan las publicaciones — reutilizando exactamente
-// lo que la persona ya configuró (color de borde, frase fija, marca).
+// IMPORTANTE — decisión tomada tras probar en dispositivo real: se graba el
+// stream de la cámara DIRECTAMENTE con MediaRecorder, sin pasar por un
+// <canvas> intermedio. Se probó primero grabando desde un canvas (para poder
+// "hornear" marco/pie de foto dentro del vídeo), pero eso producía vídeos
+// que Chrome reproducía bien pero que se quedaban congelados en otros
+// reproductores (galería del móvil, etc.) — un problema conocido de grabar
+// canvas.captureStream() en vez de la cámara. Grabar el stream tal cual es
+// el camino estándar y mucho más fiable; a cambio, el marco/pie de foto no
+// se pueden hornear dentro del vídeo (solo existen en las publicaciones).
 const REEL_ABSOLUTE_MAX_SECONDS = 90; // techo de seguridad (límite habitual de Reels)
 const REEL_MIN_SECONDS = 6;
 const REEL_WPM = 95; // ritmo de lectura hablada, algo pausado a propósito
-const REEL_CANVAS_W = 1080;
-const REEL_CANVAS_H = 1920;
 
 const reelState = {
   stream: null,
@@ -2135,8 +2138,7 @@ const reelState = {
   scrollDistance: 0,
   scrollReadSeconds: 6,
   recordingMaxSeconds: REEL_ABSOLUTE_MAX_SECONDS,
-  canvas: null,
-  ctx: null
+  cameraReady: false
 };
 
 const reelOverlay = document.getElementById('reelOverlay');
@@ -2157,10 +2159,10 @@ function reelSupported() {
 
 function pickReelMimeType() {
   const candidates = [
-    'video/mp4;codecs=h264,aac',   // Safari/iOS
-    'video/webm;codecs=vp8,opus',  // más ligero de codificar que vp9 → menos tirones
+    'video/webm;codecs=vp8,opus',  // formato nativo de MediaRecorder en Chrome — el más probado
     'video/webm;codecs=vp9,opus',
-    'video/webm'
+    'video/webm',
+    'video/mp4;codecs=h264,aac'    // último recurso — solo hace falta en Safari/iOS, donde no hay webm
   ];
   for (const type of candidates) {
     if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) return type;
@@ -2227,6 +2229,7 @@ function closeReelOverlay() {
   if (reelState.blobUrl) { URL.revokeObjectURL(reelState.blobUrl); reelState.blobUrl = null; }
   reelState.chunks = [];
   reelState.recording = false;
+  reelState.cameraReady = false;
   reelOverlay.classList.remove('is-open', 'is-camera', 'is-review');
   reelRecordBtn.classList.remove('is-rec');
   reelTimer.classList.remove('is-rec');
@@ -2245,11 +2248,13 @@ function stopReelStream() {
 
 async function startReelCamera() {
   stopReelStream();
+  reelState.cameraReady = false;
+  updateReelRecordButtonAvailability();
   try {
     // Constraints suaves a propósito: pedir una resolución/ratio exactos
     // hace que muchos móviles apliquen zoom digital para encajarlo, y la
-    // imagen se ve "pegada". Pedimos solo lo ideal y recortamos nosotros
-    // mismos en el canvas al grabar, con la imagen completa que da la cámara.
+    // imagen se ve "pegada". object-fit:cover en el CSS se encarga del
+    // encuadre visual sin necesidad de recortar nosotros a mano.
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } },
       audio: true
@@ -2258,6 +2263,7 @@ async function startReelCamera() {
     reelVideo.classList.remove('is-review');
     reelVideo.srcObject = stream;
     reelPermissionMsg.classList.remove('is-visible');
+    waitForRealCameraFrames();
   } catch (err) {
     let msg = 'No hemos podido acceder a la cámara. Revisa los permisos e inténtalo de nuevo.';
     if (err && err.name === 'NotAllowedError') msg = 'Necesitamos permiso de cámara y micrófono para grabar aquí. Actívalo en los ajustes del navegador.';
@@ -2265,6 +2271,41 @@ async function startReelCamera() {
     reelPermissionText.textContent = msg;
     reelPermissionMsg.classList.add('is-visible');
   }
+}
+
+// Empezar a grabar en cuanto la cámara "conecta" (antes de que entreguen
+// fotogramas reales de verdad) es lo que produce vídeos mal formados o que
+// se quedan clavados a los pocos segundos. Esperamos a ver varios fotogramas
+// de verdad pasar antes de dejar tocar el botón de grabar.
+function waitForRealCameraFrames() {
+  const needed = 3;
+  let count = 0;
+  if (reelVideo.requestVideoFrameCallback) {
+    const onFrame = () => {
+      count++;
+      if (count >= needed) {
+        reelState.cameraReady = true;
+        updateReelRecordButtonAvailability();
+      } else if (reelState.stream) {
+        reelVideo.requestVideoFrameCallback(onFrame);
+      }
+    };
+    reelVideo.requestVideoFrameCallback(onFrame);
+  } else {
+    // Navegadores sin esta API (algunos Safari): un pequeño margen es suficiente
+    setTimeout(() => {
+      reelState.cameraReady = true;
+      updateReelRecordButtonAvailability();
+    }, 500);
+  }
+}
+
+function updateReelRecordButtonAvailability() {
+  const ready = reelState.cameraReady || reelState.recording;
+  reelRecordBtn.disabled = !ready;
+  reelRecordBtn.style.opacity = ready ? '1' : '0.35';
+  if (!ready) reelHint.textContent = 'Preparando la cámara…';
+  else if (!reelState.recording) reelHint.textContent = 'Toca para empezar a grabar. El guion irá subiendo solo mientras hablas.';
 }
 
 function resetTeleprompter() {
@@ -2277,106 +2318,29 @@ function updateReelTimerDisplay() {
   reelTimer.textContent = `${m}:${s}`;
 }
 
-// Recorta y dibuja el fotograma de la cámara sobre el canvas de grabación,
-// centrado tipo "cover" (igual que el object-fit:cover del preview), pero
-// calculado a mano para no depender del zoom del driver de la cámara.
-function drawCoverFrame(ctx, video, cw, ch) {
-  const vw = video.videoWidth, vh = video.videoHeight;
-  if (!vw || !vh) return;
-  const targetRatio = cw / ch;
-  const sourceRatio = vw / vh;
-  let sx, sy, sw, sh;
-  if (sourceRatio > targetRatio) {
-    sh = vh; sw = vh * targetRatio; sy = 0; sx = (vw - sw) / 2;
-  } else {
-    sw = vw; sh = vw / targetRatio; sx = 0; sy = (vh - sh) / 2;
-  }
-  ctx.save();
-  ctx.translate(cw, 0); ctx.scale(-1, 1); // espejo, como se ve la persona a sí misma
-  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
-  ctx.restore();
-}
-
-// Dibuja el mismo marco/pie de foto que usan las publicaciones (borde tipo
-// cuadro, o el marco fino + la barra con la frase fija al pie), reutilizando
-// tal cual lo que la persona ya haya configurado ahí — nada nuevo que tocar.
-function drawReelFrameAndFooter(ctx, video, cw, ch) {
-  const accent = state.accentColor || '#c8a96e';
-  const hasBorder = state.borderColor && state.borderColor !== 'none';
-  const footerPhrase = document.getElementById('footerPhrase').value.trim();
-
-  let inset = 0;
-  if (hasBorder) {
-    ctx.fillStyle = state.borderColor;
-    ctx.fillRect(0, 0, cw, ch);
-    inset = cw * 0.055;
-    ctx.save();
-    ctx.translate(inset, inset);
-    const scale = (cw - inset * 2) / cw;
-    ctx.scale(scale, scale);
-  }
-
-  drawCoverFrame(ctx, video, cw, ch);
-
-  if (footerPhrase) {
-    const barTop = ch * 0.87;
-    ctx.fillStyle = hexToRgba(accent, 0.92);
-    ctx.fillRect(0, barTop, cw, ch - barTop);
-    ctx.fillStyle = getContrastText(accent);
-    ctx.font = "700 35px 'DM Sans', sans-serif";
-    ctx.textAlign = 'center';
-    const footerLines = wrapLines(ctx, footerPhrase, cw * 0.86);
-    const footerLineHeight = 42;
-    let fy = barTop + (ch - barTop) / 2 - ((footerLines.length - 1) * footerLineHeight) / 2 + 12;
-    footerLines.forEach(line => { ctx.fillText(line, cw / 2, fy); fy += footerLineHeight; });
-  }
-
-  // Marco decorativo fino — solo si no hay borde tipo cuadro, igual que en las fotos
-  if (!hasBorder) {
-    const pad = 34;
-    ctx.strokeStyle = accent;
-    ctx.lineWidth = 6;
-    ctx.globalAlpha = 0.85;
-    ctx.strokeRect(pad, pad, cw - pad * 2, ch - pad * 2);
-    ctx.globalAlpha = 1;
-  }
-
-  if (hasBorder) ctx.restore();
-}
-
-function reelDrawLoop() {
-  const ctx = reelState.ctx;
-  if (!ctx) return;
+// El scroll del guion va por su cuenta (requestAnimationFrame propio, ligero:
+// solo mueve un transform, no dibuja nada pesado) — separado por completo
+// de la grabación, que ahora es directamente el stream de la cámara.
+function reelScrollLoop() {
+  if (!reelState.recording) return;
   const now = performance.now();
-
-  drawReelFrameAndFooter(ctx, reelVideo, REEL_CANVAS_W, REEL_CANVAS_H);
   const elapsed = (now - reelState.recordStartMs) / 1000;
   const startDelay = 0.6; // un respiro antes de que el guion empiece a moverse
   const progress = Math.max(0, Math.min(1, (elapsed - startDelay) / reelState.scrollReadSeconds));
   reelTeleprompterTrack.style.transform = `translateY(${-progress * reelState.scrollDistance}px)`;
-
-  reelState.rafId = requestAnimationFrame(reelDrawLoop);
+  reelState.rafId = requestAnimationFrame(reelScrollLoop);
 }
 
 function startReelRecording() {
   if (!reelState.stream) { toast('Todavía no tenemos acceso a la cámara.', 'error'); return; }
-
-  const canvas = document.createElement('canvas');
-  canvas.width = REEL_CANVAS_W;
-  canvas.height = REEL_CANVAS_H;
-  reelState.canvas = canvas;
-  reelState.ctx = canvas.getContext('2d');
-
-  const canvasStream = canvas.captureStream(30);
-  const audioTrack = reelState.stream.getAudioTracks()[0];
-  if (audioTrack) canvasStream.addTrack(audioTrack);
+  if (!reelState.cameraReady) { toast('Un segundo, la cámara todavía se está preparando.', 'info'); return; }
 
   reelState.mimeType = pickReelMimeType();
   reelState.chunks = [];
   try {
     reelState.recorder = reelState.mimeType
-      ? new MediaRecorder(canvasStream, { mimeType: reelState.mimeType })
-      : new MediaRecorder(canvasStream);
+      ? new MediaRecorder(reelState.stream, { mimeType: reelState.mimeType })
+      : new MediaRecorder(reelState.stream);
   } catch (e) {
     toast('No se ha podido iniciar la grabación en este navegador.', 'error');
     return;
@@ -2400,8 +2364,11 @@ function startReelRecording() {
   reelTimer.classList.add('is-rec');
   reelHint.textContent = 'Grabando… toca de nuevo para terminar.';
 
-  reelState.recorder.start();
-  reelState.rafId = requestAnimationFrame(reelDrawLoop);
+  // Pedimos un trozo de datos cada segundo (en vez de uno solo gigante al
+  // final) — hace el archivo resultante más robusto y fácil de reproducir
+  // en cualquier reproductor, no solo en el navegador que grabó.
+  reelState.recorder.start(1000);
+  reelState.rafId = requestAnimationFrame(reelScrollLoop);
   reelState.timerId = setInterval(() => {
     reelState.seconds++;
     updateReelTimerDisplay();
