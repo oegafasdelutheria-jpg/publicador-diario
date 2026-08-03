@@ -2259,18 +2259,19 @@ async function startReelCamera() {
   reelState.cameraReady = false;
   updateReelRecordButtonAvailability();
   try {
-    // Constraints suaves a propósito: pedir una resolución/ratio exactos
-    // hace que muchos móviles apliquen zoom digital para encajarlo, y la
-    // imagen se ve "pegada". object-fit:cover en el CSS se encarga del
-    // encuadre visual sin necesidad de recortar nosotros a mano.
-    // Resolución moderada (no 1280x1280) y fps con tope: pedir más de lo que
-    // el móvil puede codificar en tiempo real es lo que produce vídeo a
-    // tirones — mejor una imagen algo más pequeña pero fluida.
+    // Formato vertical 9:16 de verdad (como Historias/Reels), no cuadrado.
+    // Usamos solo "ideal" (preferencia), nunca "exact": pedir una proporción
+    // exacta es lo que antes hacía que algunos móviles aplicaran zoom digital
+    // para encajarla. Con "ideal" el navegador respeta mejor el encuadre
+    // natural de la cámara. Resolución moderada + tope de fps para que vaya
+    // fluido: pedir más de lo que el móvil puede codificar en tiempo real es
+    // lo que produce vídeo a tirones.
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: reelState.facingMode,
-        width: { ideal: 960 },
-        height: { ideal: 960 },
+        aspectRatio: { ideal: 9 / 16 },
+        width: { ideal: 720 },
+        height: { ideal: 1280 },
         frameRate: { ideal: 30, max: 30 }
       },
       audio: true
