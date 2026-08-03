@@ -403,6 +403,154 @@ input[type="range"]::-moz-range-thumb {
 .toast.success { border-color: rgba(30,122,69,0.4); color: #1e7a45; }
 .toast.error { border-color: rgba(184,48,48,0.4); color: #b83030; }
 .toast.info { border-color: rgba(47,109,196,0.4); color: #2f6dc4; }
+/* ── GRABAR REEL CON TELEPROMPTER ─────────────────────────────────────────
+   Pantalla completa tipo cámara: fondo negro intencionado (no crema) porque
+   es el estándar de cualquier visor de cámara y así el vídeo grabado se ve
+   bien contra el marco de la interfaz. No forma parte del resto de la
+   estética clara de la app. */
+.reel-launch-btn {
+  background: linear-gradient(135deg, #1c1712, #3a2f24);
+  color: #f7f4ef;
+  padding: 12px 14px;
+  font-size: 13.5px;
+}
+.reel-launch-btn:hover { filter: brightness(1.25); transform: translateY(-1px); }
+
+.reel-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #05050a;
+  z-index: 500;
+  flex-direction: column;
+}
+.reel-overlay.is-open { display: flex; }
+
+.reel-topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  z-index: 5;
+}
+.reel-close-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.14);
+  border: none; color: #fff; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.reel-timer {
+  background: rgba(255,255,255,0.14);
+  color: #fff; font-family: 'DM Mono', monospace;
+  font-size: 13px; padding: 6px 12px; border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+.reel-timer.is-rec::before {
+  content: '●'; color: #ff4d4d; margin-right: 6px;
+  animation: reelBlink 1s infinite;
+}
+@keyframes reelBlink { 50% { opacity: 0.2; } }
+
+.reel-camera-wrap {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #000;
+}
+.reel-video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* efecto espejo, natural en modo selfie */
+}
+.reel-video.is-review { transform: none; } /* la grabación final no va espejada */
+
+.reel-teleprompter {
+  position: absolute;
+  top: 64px; left: 0; right: 0;
+  height: 40%;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+}
+.reel-teleprompter-track {
+  position: absolute;
+  left: 0; right: 0; top: 100%;
+  padding: 0 26px;
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.65);
+  transition: top linear;
+}
+
+.reel-bottombar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 16px 30px;
+  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+}
+.reel-hint {
+  color: rgba(255,255,255,0.75);
+  font-size: 12.5px;
+  text-align: center;
+  max-width: 280px;
+}
+.reel-record-btn {
+  width: 74px; height: 74px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  background: rgba(255,255,255,0.15);
+  cursor: pointer;
+  position: relative;
+}
+.reel-record-btn::after {
+  content: '';
+  position: absolute; inset: 8px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  transition: var(--transition);
+}
+.reel-record-btn.is-rec::after { border-radius: 6px; inset: 22px; }
+
+.reel-review-bar {
+  display: none;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 18px 16px 28px;
+  gap: 10px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+}
+.reel-overlay.is-review .reel-review-bar { display: flex; }
+.reel-overlay.is-review .reel-bottombar { display: none; }
+.reel-review-bar .btn { width: auto; flex: 1; }
+
+.reel-permission-msg {
+  display: none;
+  position: absolute; inset: 0;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; padding: 30px;
+  text-align: center; color: #fff;
+  z-index: 6; background: #05050a;
+}
+.reel-permission-msg.is-visible { display: flex; }
+.reel-permission-msg .btn { width: auto; padding: 10px 20px; }
+
+@media (max-width: 380px) {
+  .reel-teleprompter-track { font-size: 19px; }
+  .reel-record-btn { width: 66px; height: 66px; }
+}
 </style>
 </head>
 <body>
@@ -423,6 +571,7 @@ input[type="range"]::-moz-range-thumb {
       <div class="idea-directive" id="ideaDirective">Muestra tu producto o servicio de hoy.</div>
       <div class="idea-photo" id="ideaPhotoHint">📷 Haz una foto de lo que tengas listo ahora mismo.</div>
       <button type="button" class="link-btn" id="nextIdeaBtn" style="margin-top:6px;">↻ Otra idea</button>
+      <button type="button" class="btn reel-launch-btn" id="openReelBtn" style="margin-top:12px;">🎥 Grabar reel con guion en pantalla</button>
     </div>
 
     <div class="field-group">
@@ -534,6 +683,36 @@ input[type="range"]::-moz-range-thumb {
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+
+<div class="reel-overlay" id="reelOverlay">
+  <div class="reel-topbar">
+    <button type="button" class="reel-close-btn" id="reelCloseBtn" aria-label="Cerrar">✕</button>
+    <div class="reel-timer" id="reelTimer">00:00</div>
+    <div style="width:38px;"></div>
+  </div>
+
+  <div class="reel-camera-wrap">
+    <video class="reel-video" id="reelVideo" autoplay playsinline muted></video>
+    <div class="reel-teleprompter" id="reelTeleprompter">
+      <div class="reel-teleprompter-track" id="reelTeleprompterTrack"></div>
+    </div>
+    <div class="reel-permission-msg" id="reelPermissionMsg">
+      <div style="font-size:34px;">🎥</div>
+      <div id="reelPermissionText">Necesitamos permiso de cámara y micrófono para grabar aquí.</div>
+      <button type="button" class="btn btn-primary" id="reelRetryPermissionBtn">Reintentar</button>
+    </div>
+  </div>
+
+  <div class="reel-bottombar" id="reelBottombar">
+    <div class="reel-hint" id="reelHint">Toca para empezar a grabar. El guion irá subiendo solo mientras hablas.</div>
+    <button type="button" class="reel-record-btn" id="reelRecordBtn" aria-label="Grabar"></button>
+  </div>
+
+  <div class="reel-review-bar" id="reelReviewBar">
+    <button type="button" class="btn btn-ghost" id="reelRetakeBtn" style="color:#fff; border-color:rgba(255,255,255,0.3);">↻ Repetir toma</button>
+    <button type="button" class="btn btn-primary" id="reelDownloadBtn">⬇ Descargar vídeo</button>
+  </div>
+</div>
 
 <script>
 // ─── FORMATOS DISPONIBLES ───────────────────────────────────────────────────
@@ -1885,6 +2064,238 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
     navigator.serviceWorker.register('sw.js').catch(err => console.log('SW no registrado:', err));
   });
 }
+
+// ─── GRABAR REEL CON TELEPROMPTER ──────────────────────────────────────────
+// Solo reutiliza el guion ya generado por la app (frase principal + caption
+// de la familia del día) — no inventa texto nuevo. Todo client-side: cámara,
+// grabación y descarga, sin servidor.
+const REEL_MAX_SECONDS = 60;
+const REEL_WPM = 130; // ritmo de lectura hablada, para calcular la velocidad del scroll
+
+const reelState = {
+  stream: null,
+  recorder: null,
+  chunks: [],
+  mimeType: '',
+  blobUrl: null,
+  timerId: null,
+  scrollTimeoutId: null,
+  seconds: 0,
+  recording: false
+};
+
+const reelOverlay = document.getElementById('reelOverlay');
+const reelVideo = document.getElementById('reelVideo');
+const reelTimer = document.getElementById('reelTimer');
+const reelRecordBtn = document.getElementById('reelRecordBtn');
+const reelTeleprompterTrack = document.getElementById('reelTeleprompterTrack');
+const reelPermissionMsg = document.getElementById('reelPermissionMsg');
+const reelPermissionText = document.getElementById('reelPermissionText');
+const reelHint = document.getElementById('reelHint');
+
+function reelSupported() {
+  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+}
+
+function pickReelMimeType() {
+  const candidates = [
+    'video/mp4;codecs=h264,aac',
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm'
+  ];
+  for (const type of candidates) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) return type;
+  }
+  return '';
+}
+
+// Construye el guion a partir de lo que la app ya generó (o genera algo si
+// todavía no se había tocado "hazlo tú" / "otra idea" ese día).
+function buildReelScript() {
+  const main = document.getElementById('mainPhrase').value.trim();
+  const caption = document.getElementById('captionText').value.trim();
+  if (main || caption) return [main, caption].filter(Boolean).join('. ');
+  const familyKey = getCurrentFamily().key;
+  const openerRaw = pickFromBankByFamily('openers', familyKey);
+  const captionRaw = pickFromBankByFamily('captions', familyKey);
+  return fillTemplate([openerRaw, captionRaw].filter(Boolean).join('. '));
+}
+
+function openReelOverlay() {
+  if (!reelSupported()) {
+    toast('Tu navegador no admite grabar vídeo aquí. Prueba con Chrome actualizado.', 'error');
+    return;
+  }
+  reelOverlay.classList.add('is-open');
+  reelOverlay.classList.remove('is-review');
+  reelPermissionMsg.classList.remove('is-visible');
+  reelTeleprompterTrack.textContent = buildReelScript();
+  startReelCamera();
+}
+
+function closeReelOverlay() {
+  stopReelStream();
+  clearInterval(reelState.timerId);
+  clearTimeout(reelState.scrollTimeoutId);
+  if (reelState.blobUrl) { URL.revokeObjectURL(reelState.blobUrl); reelState.blobUrl = null; }
+  reelState.chunks = [];
+  reelState.recording = false;
+  reelOverlay.classList.remove('is-open', 'is-review');
+  reelRecordBtn.classList.remove('is-rec');
+  reelTimer.classList.remove('is-rec');
+  reelVideo.classList.remove('is-review');
+  reelVideo.srcObject = null;
+  reelVideo.src = '';
+}
+
+function stopReelStream() {
+  if (reelState.stream) {
+    reelState.stream.getTracks().forEach(t => t.stop());
+    reelState.stream = null;
+  }
+}
+
+async function startReelCamera() {
+  stopReelStream();
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1920 } },
+      audio: true
+    });
+    reelState.stream = stream;
+    reelVideo.classList.remove('is-review');
+    reelVideo.srcObject = stream;
+    reelPermissionMsg.classList.remove('is-visible');
+  } catch (err) {
+    let msg = 'No hemos podido acceder a la cámara. Revisa los permisos e inténtalo de nuevo.';
+    if (err && err.name === 'NotAllowedError') msg = 'Necesitamos permiso de cámara y micrófono para grabar aquí. Actívalo en los ajustes del navegador.';
+    if (err && err.name === 'NotFoundError') msg = 'No hemos encontrado ninguna cámara en este dispositivo.';
+    reelPermissionText.textContent = msg;
+    reelPermissionMsg.classList.add('is-visible');
+  }
+}
+
+function startTeleprompterScroll() {
+  const track = reelTeleprompterTrack;
+  track.style.transition = 'none';
+  track.style.top = '100%';
+  const words = track.textContent.trim().split(/\s+/).filter(Boolean).length;
+  const readSeconds = Math.max(4, Math.min(REEL_MAX_SECONDS - 2, (words / REEL_WPM) * 60));
+  // pequeña pausa antes de arrancar, para dar tiempo a coger aire
+  reelState.scrollTimeoutId = setTimeout(() => {
+    const trackHeight = track.getBoundingClientRect().height;
+    const wrapHeight = track.parentElement.getBoundingClientRect().height;
+    const distance = trackHeight + wrapHeight;
+    track.style.transition = `top ${readSeconds}s linear`;
+    track.style.top = `-${distance}px`;
+  }, 30);
+}
+
+function resetTeleprompter() {
+  clearTimeout(reelState.scrollTimeoutId);
+  reelTeleprompterTrack.style.transition = 'none';
+  reelTeleprompterTrack.style.top = '100%';
+}
+
+function updateReelTimerDisplay() {
+  const m = String(Math.floor(reelState.seconds / 60)).padStart(2, '0');
+  const s = String(reelState.seconds % 60).padStart(2, '0');
+  reelTimer.textContent = `${m}:${s}`;
+}
+
+function startReelRecording() {
+  if (!reelState.stream) { toast('Todavía no tenemos acceso a la cámara.', 'error'); return; }
+  reelState.mimeType = pickReelMimeType();
+  reelState.chunks = [];
+  try {
+    reelState.recorder = reelState.mimeType
+      ? new MediaRecorder(reelState.stream, { mimeType: reelState.mimeType })
+      : new MediaRecorder(reelState.stream);
+  } catch (e) {
+    toast('No se ha podido iniciar la grabación en este navegador.', 'error');
+    return;
+  }
+  reelState.recorder.ondataavailable = e => { if (e.data && e.data.size > 0) reelState.chunks.push(e.data); };
+  reelState.recorder.onstop = onReelRecordingStopped;
+  reelState.recorder.start();
+  reelState.recording = true;
+  reelState.seconds = 0;
+  updateReelTimerDisplay();
+  reelRecordBtn.classList.add('is-rec');
+  reelTimer.classList.add('is-rec');
+  reelHint.textContent = 'Grabando… toca de nuevo para terminar.';
+  startTeleprompterScroll();
+  reelState.timerId = setInterval(() => {
+    reelState.seconds++;
+    updateReelTimerDisplay();
+    if (reelState.seconds >= REEL_MAX_SECONDS) stopReelRecording();
+  }, 1000);
+}
+
+function stopReelRecording() {
+  if (!reelState.recording) return;
+  reelState.recording = false;
+  clearInterval(reelState.timerId);
+  resetTeleprompter();
+  reelRecordBtn.classList.remove('is-rec');
+  reelTimer.classList.remove('is-rec');
+  if (reelState.recorder && reelState.recorder.state !== 'inactive') reelState.recorder.stop();
+}
+
+function onReelRecordingStopped() {
+  stopReelStream();
+  const blob = new Blob(reelState.chunks, { type: reelState.mimeType || 'video/webm' });
+  if (reelState.blobUrl) URL.revokeObjectURL(reelState.blobUrl);
+  reelState.blobUrl = URL.createObjectURL(blob);
+  reelVideo.classList.add('is-review');
+  reelVideo.srcObject = null;
+  reelVideo.src = reelState.blobUrl;
+  reelVideo.muted = false;
+  reelVideo.loop = true;
+  reelVideo.play().catch(() => {});
+  reelOverlay.classList.add('is-review');
+}
+
+function retakeReel() {
+  reelOverlay.classList.remove('is-review');
+  reelVideo.loop = false;
+  reelVideo.muted = true;
+  if (reelState.blobUrl) { URL.revokeObjectURL(reelState.blobUrl); reelState.blobUrl = null; }
+  reelVideo.src = '';
+  reelState.seconds = 0;
+  updateReelTimerDisplay();
+  reelHint.textContent = 'Toca para empezar a grabar. El guion irá subiendo solo mientras hablas.';
+  startReelCamera();
+}
+
+function downloadReelVideo() {
+  if (!reelState.blobUrl) return;
+  const ext = (reelState.mimeType || '').includes('mp4') ? 'mp4' : 'webm';
+  const name = (document.getElementById('businessName').value.trim() || 'publicador-diario').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const a = document.createElement('a');
+  a.href = reelState.blobUrl;
+  a.download = `reel-${name}-${Date.now()}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast('Vídeo descargado ✦', 'success');
+}
+
+document.getElementById('openReelBtn').addEventListener('click', openReelOverlay);
+document.getElementById('reelCloseBtn').addEventListener('click', closeReelOverlay);
+document.getElementById('reelRetryPermissionBtn').addEventListener('click', startReelCamera);
+document.getElementById('reelRetakeBtn').addEventListener('click', retakeReel);
+document.getElementById('reelDownloadBtn').addEventListener('click', downloadReelVideo);
+reelRecordBtn.addEventListener('click', () => {
+  if (reelState.recording) stopReelRecording();
+  else startReelRecording();
+});
+// Si el usuario sale de la pestaña/app a mitad de grabación, la cortamos
+// para no dejar la cámara encendida en segundo plano.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && reelState.recording) stopReelRecording();
+});
 </script>
 </body>
 </html>
