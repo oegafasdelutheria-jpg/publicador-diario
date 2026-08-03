@@ -454,6 +454,10 @@ input[type="range"]::-moz-range-thumb {
 }
 @keyframes reelBlink { 50% { opacity: 0.2; } }
 
+#reelFlipBtn { display: none; visibility: visible; }
+.reel-overlay.is-camera #reelFlipBtn { display: flex; }
+.reel-overlay.is-review #reelFlipBtn { display: none; }
+
 .reel-camera-wrap {
   display: none;
   position: relative;
@@ -496,6 +500,7 @@ input[type="range"]::-moz-range-thumb {
   transform: scaleX(-1); /* efecto espejo, natural en modo selfie */
 }
 .reel-video.is-review { transform: none; } /* la grabación final no va espejada */
+.reel-video.is-back-camera { transform: none; } /* la cámara trasera no se espeja, como en cualquier app de cámara */
 
 .reel-teleprompter {
   position: absolute;
@@ -721,7 +726,7 @@ input[type="range"]::-moz-range-thumb {
   <div class="reel-topbar">
     <button type="button" class="reel-close-btn" id="reelCloseBtn" aria-label="Cerrar">✕</button>
     <div class="reel-timer" id="reelTimer">00:00</div>
-    <div style="width:38px;"></div>
+    <button type="button" class="reel-close-btn" id="reelFlipBtn" aria-label="Girar cámara">🔄</button>
   </div>
 
   <div class="reel-script-panel" id="reelScriptPanel">
@@ -2138,7 +2143,8 @@ const reelState = {
   scrollDistance: 0,
   scrollReadSeconds: 6,
   recordingMaxSeconds: REEL_ABSOLUTE_MAX_SECONDS,
-  cameraReady: false
+  cameraReady: false,
+  facingMode: 'user'
 };
 
 const reelOverlay = document.getElementById('reelOverlay');
@@ -2152,6 +2158,7 @@ const reelTeleprompterTrack = document.getElementById('reelTeleprompterTrack');
 const reelPermissionMsg = document.getElementById('reelPermissionMsg');
 const reelPermissionText = document.getElementById('reelPermissionText');
 const reelHint = document.getElementById('reelHint');
+const reelFlipBtn = document.getElementById('reelFlipBtn');
 
 function reelSupported() {
   return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
@@ -2200,6 +2207,7 @@ function openReelOverlay() {
   reelOverlay.classList.add('is-open');
   reelOverlay.classList.remove('is-camera', 'is-review');
   reelPermissionMsg.classList.remove('is-visible');
+  reelState.facingMode = 'user';
   reelScriptInput.value = buildReelScript();
   updateReelScriptMeta();
 }
@@ -2255,12 +2263,21 @@ async function startReelCamera() {
     // hace que muchos móviles apliquen zoom digital para encajarlo, y la
     // imagen se ve "pegada". object-fit:cover en el CSS se encarga del
     // encuadre visual sin necesidad de recortar nosotros a mano.
+    // Resolución moderada (no 1280x1280) y fps con tope: pedir más de lo que
+    // el móvil puede codificar en tiempo real es lo que produce vídeo a
+    // tirones — mejor una imagen algo más pequeña pero fluida.
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } },
+      video: {
+        facingMode: reelState.facingMode,
+        width: { ideal: 960 },
+        height: { ideal: 960 },
+        frameRate: { ideal: 30, max: 30 }
+      },
       audio: true
     });
     reelState.stream = stream;
     reelVideo.classList.remove('is-review');
+    reelVideo.classList.toggle('is-back-camera', reelState.facingMode === 'environment');
     reelVideo.srcObject = stream;
     reelPermissionMsg.classList.remove('is-visible');
     waitForRealCameraFrames();
@@ -2362,6 +2379,7 @@ function startReelRecording() {
   updateReelTimerDisplay();
   reelRecordBtn.classList.add('is-rec');
   reelTimer.classList.add('is-rec');
+  reelFlipBtn.style.visibility = 'hidden';
   reelHint.textContent = 'Grabando… toca de nuevo para terminar.';
 
   // Pedimos un trozo de datos cada segundo (en vez de uno solo gigante al
@@ -2384,6 +2402,7 @@ function finishReelRecording() {
   resetTeleprompter();
   reelRecordBtn.classList.remove('is-rec');
   reelTimer.classList.remove('is-rec');
+  reelFlipBtn.style.visibility = 'visible';
   if (reelState.recorder && reelState.recorder.state !== 'inactive') reelState.recorder.stop();
 }
 
@@ -2426,6 +2445,15 @@ function downloadReelVideo() {
   toast('Vídeo descargado ✦', 'success');
 }
 
+// Cambia entre cámara frontal y trasera. Solo disponible fuera de grabación
+// (cambiar de cámara a mitad de una grabación en curso no es seguro: rompería
+// el MediaRecorder, que está atado al stream original).
+function flipReelCamera() {
+  if (reelState.recording) return;
+  reelState.facingMode = reelState.facingMode === 'user' ? 'environment' : 'user';
+  startReelCamera();
+}
+
 document.getElementById('openReelBtn').addEventListener('click', openReelOverlay);
 document.getElementById('reelCloseBtn').addEventListener('click', closeReelOverlay);
 document.getElementById('reelStartCameraBtn').addEventListener('click', startReelFromScript);
@@ -2433,6 +2461,7 @@ reelScriptInput.addEventListener('input', updateReelScriptMeta);
 document.getElementById('reelRetryPermissionBtn').addEventListener('click', startReelCamera);
 document.getElementById('reelRetakeBtn').addEventListener('click', retakeReel);
 document.getElementById('reelDownloadBtn').addEventListener('click', downloadReelVideo);
+reelFlipBtn.addEventListener('click', flipReelCamera);
 reelRecordBtn.addEventListener('click', () => {
   if (!reelState.recording) startReelRecording();
   else finishReelRecording();
