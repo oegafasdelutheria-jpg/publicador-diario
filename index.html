@@ -562,6 +562,28 @@ input[type="range"]::-moz-range-thumb {
 }
 .reel-record-btn.is-rec::after { border-radius: 6px; inset: 22px; }
 
+.reel-countdown {
+  display: none;
+  position: absolute; inset: 0;
+  align-items: center; justify-content: center;
+  z-index: 4;
+  pointer-events: none;
+}
+.reel-countdown.is-visible { display: flex; }
+.reel-countdown-num {
+  font-family: 'Fraunces', serif;
+  font-weight: 800;
+  font-size: 120px;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  animation: reelCountdownPulse 0.8s ease;
+}
+@keyframes reelCountdownPulse {
+  0% { opacity: 0; transform: scale(0.6); }
+  30% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
 .reel-review-bar {
   display: none;
   position: absolute;
@@ -747,6 +769,9 @@ input[type="range"]::-moz-range-thumb {
       <div id="reelPermissionText">Necesitamos permiso de cámara y micrófono para grabar aquí.</div>
       <button type="button" class="btn btn-primary" id="reelRetryPermissionBtn">Reintentar</button>
     </div>
+    <div class="reel-countdown" id="reelCountdown">
+      <div class="reel-countdown-num" id="reelCountdownNum">3</div>
+    </div>
   </div>
 
   <div class="reel-bottombar" id="reelBottombar">
@@ -813,27 +838,37 @@ const SECTORES = {
       producto: [
         "Hoy sale del horno algo que no te vas a querer perder",
         "El plato del día ya tiene nombre en {negocio}",
-        "Esto es lo que se cocina hoy en {negocio}"
+        "Esto es lo que se cocina hoy en {negocio}",
+        "Prueba esto antes de que se acabe",
+        "Hoy hay una razón más para venir a {negocio}"
       ],
       proceso: [
         "Las cosas buenas empiezan mucho antes de llegar a la mesa",
         "Haz una foto mientras lo estás preparando",
-        "Así se prepara, paso a paso, lo que hoy vas a probar"
+        "Así se prepara, paso a paso, lo que hoy vas a probar",
+        "Todo lo que no ves antes de que llegue a tu mesa",
+        "Un ingrediente, un paso, mucho cuidado"
       ],
       persona: [
         "Detrás de cada plato hay alguien que lo cuida de verdad",
         "Hoy te presentamos a quien cocina en {negocio}",
-        "Una cara conocida detrás del mostrador de {negocio}"
+        "Una cara conocida detrás del mostrador de {negocio}",
+        "Las manos detrás de lo que hoy vas a comer",
+        "En {negocio} cocina alguien, no una máquina"
       ],
       pregunta: [
         "¿Dulce o salado hoy?",
         "¿Para comer aquí o para llevar?",
-        "¿Ya has desayunado o te esperamos con algo rico?"
+        "¿Ya has desayunado o te esperamos con algo rico?",
+        "¿Café solo o con algo al lado?",
+        "¿Vienes solo o traes compañía hoy?"
       ],
       confianza: [
         "Llevamos años haciendo esto de la misma manera, con el mismo cuidado",
         "En {negocio} el sabor no es casualidad",
-        "Cada cliente que vuelve es la mejor señal de que algo hacemos bien"
+        "Cada cliente que vuelve es la mejor señal de que algo hacemos bien",
+        "No cambiamos la receta porque funciona",
+        "En {negocio} se cocina como en casa, siempre"
       ]
     },
     footers: [
@@ -849,11 +884,11 @@ const SECTORES = {
       "Hoy también hacemos para llevar"
     ],
     captionsByFamily: {
-      producto: ["Hoy tenemos algo especial esperándote en {negocio}. Ven a probarlo o pídelo a domicilio."],
-      proceso: ["Hoy te enseñamos un poco de lo que pasa antes de abrir las puertas de {negocio}."],
-      persona: ["Detrás de cada plato de {negocio} hay una persona que lo prepara con cuidado. Hoy te la presentamos."],
-      pregunta: ["¿Dulce o salado? Cuéntanoslo en los comentarios, te leemos desde {negocio}."],
-      confianza: ["Llevamos tiempo haciendo las cosas de la misma manera en {negocio}, y se nota."]
+      producto: ["Hoy tenemos algo especial esperándote en {negocio}. Ven a probarlo o pídelo a domicilio.", "Esto es lo que tenemos preparado hoy en {negocio}. Te esperamos con hambre.", "Nuevo en la carta de {negocio}. Cuéntanos qué te parece cuando lo pruebes.", "Hoy en {negocio} hay algo recién hecho esperándote."],
+      proceso: ["Hoy te enseñamos un poco de lo que pasa antes de abrir las puertas de {negocio}.", "En {negocio} nada sale a la mesa sin pasar antes por varias manos.", "Así se ve la cocina de {negocio} un rato antes de abrir.", "Cada plato de {negocio} tiene su proceso. Hoy te enseñamos un poco."],
+      persona: ["Detrás de cada plato de {negocio} hay una persona que lo prepara con cuidado. Hoy te la presentamos.", "Hoy queremos que conozcas a quien cocina en {negocio}.", "En {negocio} cada plato lleva la firma de alguien que le pone ganas.", "No es solo comida, es alguien cocinando para ti en {negocio}."],
+      pregunta: ["¿Dulce o salado? Cuéntanoslo en los comentarios, te leemos desde {negocio}.", "¿Café solo o con algo al lado? Cuéntanoslo, te leemos desde {negocio}.", "¿Vienes hoy a {negocio} o prefieres que te lo llevemos?", "Danos tu pedido ideal para hoy en los comentarios."],
+      confianza: ["Llevamos tiempo haciendo las cosas de la misma manera en {negocio}, y se nota.", "No cambiamos la receta porque sigue funcionando. Así es {negocio}.", "En {negocio} cocinamos como si cada cliente fuera el único.", "Hoy también encontrarás la misma calidad de siempre en {negocio}."]
     }
   },
   belleza: {
@@ -865,27 +900,37 @@ const SECTORES = {
       producto: [
         "Hoy tenemos hueco para tu tratamiento favorito",
         "El servicio que buscabas ya está disponible en {negocio}",
-        "Esto es lo que puedes hacerte hoy en {negocio}"
+        "Esto es lo que puedes hacerte hoy en {negocio}",
+        "Hoy hay tiempo para cuidarte en {negocio}",
+        "Ese cambio que tienes pensado, hoy toca"
       ],
       proceso: [
         "Así preparamos cada detalle antes de tu cita en {negocio}",
         "Haz una foto del antes, nosotros nos encargamos del después",
-        "Un vistazo a cómo trabajamos en {negocio}"
+        "Un vistazo a cómo trabajamos en {negocio}",
+        "Cada cita empieza mucho antes de que llegues",
+        "Así cuidamos cada detalle antes de tocarte el pelo"
       ],
       persona: [
         "Detrás de cada cambio de look hay alguien que lo piensa contigo",
         "Hoy te presentamos a quien te va a cuidar en {negocio}",
-        "Una cara conocida te espera en {negocio}"
+        "Una cara conocida te espera en {negocio}",
+        "Las manos que van a cuidar tu imagen hoy",
+        "En {negocio} te atiende una persona; no eres un número de turno"
       ],
       pregunta: [
         "¿Corte, color o los dos?",
         "¿Lista para un cambio hoy?",
-        "¿Qué es lo que más te gustaría probar?"
+        "¿Qué es lo que más te gustaría probar?",
+        "¿Te animas a algo distinto esta vez?",
+        "¿Qué llevas tiempo queriendo probar?"
       ],
       confianza: [
         "Llevamos tiempo cuidando los mismos detalles en {negocio}",
         "La confianza también se construye cita a cita",
-        "En {negocio} no improvisamos con tu imagen"
+        "En {negocio} no improvisamos con tu imagen",
+        "Lo que te gustó la primera vez, cada vez que vuelves",
+        "En {negocio} cuidamos tu imagen como si fuera nuestra"
       ]
     },
     footers: [
@@ -900,11 +945,11 @@ const SECTORES = {
       "Te esperamos con todo listo"
     ],
     captionsByFamily: {
-      producto: ["Hoy tenemos hueco para el tratamiento que buscabas. Reserva tu cita en {negocio}."],
-      proceso: ["Un vistazo a lo que pasa antes de que salgas de {negocio} con un look nuevo."],
-      persona: ["Detrás de cada cita en {negocio} hay alguien que se toma en serio tu cuidado."],
-      pregunta: ["¿Corte, color o los dos? Cuéntanos qué buscas y te ayudamos a decidir."],
-      confianza: ["La confianza se construye cita a cita. Así trabajamos en {negocio}."]
+      producto: ["Hoy tenemos hueco para el tratamiento que buscabas. Reserva tu cita en {negocio}.", "Hoy tenemos espacio para ese tratamiento que tienes en mente. Escríbenos.", "En {negocio} hay hueco para ti esta semana. Reserva tu cita.", "Ese cambio de look que estabas pensando, hoy es un buen día para empezarlo."],
+      proceso: ["Un vistazo a lo que pasa antes de que salgas de {negocio} con un look nuevo.", "En {negocio} cada cita se prepara con calma, no con prisa.", "Un vistazo a lo que pasa antes de que te sientes en la silla de {negocio}.", "Nada se improvisa en {negocio}. Cada detalle se piensa antes."],
+      persona: ["Detrás de cada cita en {negocio} hay alguien que se toma en serio tu cuidado.", "Queremos que conozcas a quien te va a cuidar hoy en {negocio}.", "En {negocio} no eres un cliente más, eres la persona que tenemos delante.", "Detrás de cada resultado en {negocio} hay alguien que te escuchó primero."],
+      pregunta: ["¿Corte, color o los dos? Cuéntanos qué buscas y te ayudamos a decidir.", "¿Te animas a algo distinto esta vez? Te ayudamos a decidir en {negocio}.", "¿Qué llevas tiempo queriendo probar? Hoy es un buen día para hacerlo.", "Cuéntanos qué buscas y en {negocio} lo pensamos contigo."],
+      confianza: ["La confianza se construye cita a cita. Así trabajamos en {negocio}.", "Lo que te gustó la primera vez lo encontrarás cada vez que vuelvas a {negocio}.", "En {negocio} cuidamos tu imagen con el mismo criterio de siempre.", "No prometemos magia; prometemos cuidado constante. Así es {negocio}."]
     }
   },
   moda: {
@@ -916,26 +961,36 @@ const SECTORES = {
       producto: [
         "Llegó lo nuevo a {negocio}",
         "Esto es lo que tenemos hoy en {negocio}",
-        "Stock limitado, esto vuela rápido"
+        "Stock limitado, esto vuela rápido",
+        "Esto no va a durar mucho en el perchero",
+        "Lo que llevabas buscando ya llegó a {negocio}"
       ],
       proceso: [
         "Así elegimos cada pieza que llega a {negocio}",
         "Un vistazo a cómo armamos la nueva colección",
-        "Haz una foto de tu combinación favorita de hoy"
+        "Haz una foto de tu combinación favorita de hoy",
+        "No entra todo lo que nos ofrecen, elegimos",
+        "Así decidimos qué llega a {negocio} y qué no"
       ],
       persona: [
         "Detrás de cada percha hay alguien que eligió con cuidado",
         "Hoy te presentamos a quien arma los looks de {negocio}",
-        "Una cara conocida te espera en {negocio}"
+        "Una cara conocida te espera en {negocio}",
+        "Quien elige lo que ves en {negocio} tiene buen ojo",
+        "Detrás del escaparate hay alguien con gusto de verdad"
       ],
       pregunta: [
         "¿Con qué lo combinarías?",
-        "¿Cuál es tu prenda favorita de esta temporada?"
+        "¿Cuál es tu prenda favorita de esta temporada?",
+        "¿Básico o algo más atrevido hoy?",
+        "¿Qué falta en tu armario ahora mismo?"
       ],
       confianza: [
         "Llevamos temporadas eligiendo con el mismo cuidado",
         "En {negocio} no vendemos por vender",
-        "Cada pieza que entra a {negocio} pasa nuestro propio filtro"
+        "Cada pieza que entra a {negocio} pasa nuestro propio filtro",
+        "Preferimos tener menos, pero que valga la pena",
+        "En {negocio} la calidad no se negocia"
       ]
     },
     footers: [
@@ -950,11 +1005,11 @@ const SECTORES = {
       "Visítanos o pide por DM"
     ],
     captionsByFamily: {
-      producto: ["Llegó lo nuevo a {negocio}. Pasa a verlo o escríbenos para reservar tu talla."],
-      proceso: ["Así elegimos cada temporada lo que llega a {negocio}."],
-      persona: ["Detrás de cada percha en {negocio} hay alguien que piensa en ti al elegir."],
-      pregunta: ["¿Con qué lo combinarías? Cuéntanos y armamos el look juntos."],
-      confianza: ["Cada pieza que entra a {negocio} pasa nuestro propio filtro antes de llegar a la tienda."]
+      producto: ["Llegó lo nuevo a {negocio}. Pasa a verlo o escríbenos para reservar tu talla.", "Llegó algo nuevo a {negocio} y no va a durar en el perchero. Ven a verlo.", "Esto es lo que tenemos hoy en {negocio}. Escríbenos por tu talla.", "Lo que llevabas buscando ya está en {negocio}. Reserva antes de que vuele."],
+      proceso: ["Así elegimos cada temporada lo que llega a {negocio}.", "No todo lo que nos ofrecen entra a {negocio}. Elegimos con criterio.", "Un vistazo a cómo armamos cada nueva colección en {negocio}.", "Detrás de cada percha hay una decisión pensada, no al azar."],
+      persona: ["Detrás de cada percha en {negocio} hay alguien que piensa en ti al elegir.", "Detrás del escaparate de {negocio} hay alguien que elige con buen ojo.", "Hoy te presentamos a quien arma los looks que ves en {negocio}.", "En {negocio} cada prenda pasa por alguien antes de llegar a ti."],
+      pregunta: ["¿Con qué lo combinarías? Cuéntanos y armamos el look juntos.", "¿Básico o algo más atrevido? Cuéntanos tu estilo y te ayudamos a elegir.", "¿Qué falta en tu armario ahora mismo? Puede que lo tengamos en {negocio}.", "Dinos tu talla y te decimos qué tenemos hoy en {negocio}."],
+      confianza: ["Cada pieza que entra a {negocio} pasa nuestro propio filtro antes de llegar a la tienda.", "Preferimos tener menos prendas y que cada una valga la pena. Así es {negocio}.", "En {negocio} la calidad no se negocia, temporada tras temporada.", "No seguimos todas las tendencias; seguimos las que tienen sentido para ti."]
     }
   },
   salud: {
@@ -966,26 +1021,36 @@ const SECTORES = {
       producto: [
         "Hoy tenemos sesión disponible en {negocio}",
         "Esto es lo que puedes reservar hoy en {negocio}",
-        "Un espacio para ti, disponible esta semana"
+        "Un espacio para ti, disponible esta semana",
+        "Hoy hay un hueco pensado para ti en {negocio}",
+        "Ese momento para ti, disponible esta semana"
       ],
       proceso: [
         "Así trabajamos cada sesión en {negocio}",
         "Un vistazo a cómo acompañamos tu proceso",
-        "Haz una foto de tu progreso de hoy"
+        "Haz una foto de tu progreso de hoy",
+        "Cada sesión en {negocio} empieza con una pregunta, no con un plan cerrado",
+        "Así se ve un proceso que se respeta, paso a paso"
       ],
       persona: [
         "Detrás de cada sesión hay alguien que escucha primero",
         "Hoy te presentamos a quien te acompaña en {negocio}",
-        "Una cara conocida te espera en {negocio}"
+        "Una cara conocida te espera en {negocio}",
+        "Quien te acompaña en {negocio} escucha antes de proponer",
+        "Detrás de cada sesión hay alguien que se toma tu tiempo en serio"
       ],
       pregunta: [
         "¿Cómo te sientes hoy?",
-        "¿Qué es lo que más te cuesta sostener?"
+        "¿Qué es lo que más te cuesta sostener?",
+        "¿Qué necesitas soltar esta semana?",
+        "¿Cuándo fue la última vez que te dedicaste tiempo?"
       ],
       confianza: [
         "Llevamos tiempo acompañando el mismo tipo de procesos",
         "En {negocio} no prometemos resultados de un día para otro",
-        "La constancia también se acompaña, no se exige"
+        "La constancia también se acompaña, no se exige",
+        "En {negocio} no hay atajos, hay acompañamiento real",
+        "Vamos a tu ritmo, no al que marca el calendario"
       ]
     },
     footers: [
@@ -1000,11 +1065,11 @@ const SECTORES = {
       "Sesiones individuales y en grupo"
     ],
     captionsByFamily: {
-      producto: ["Hoy tenemos lugar para tu sesión. Reserva en {negocio} y empieza cuando quieras."],
-      proceso: ["Un vistazo a cómo acompañamos cada proceso en {negocio}."],
-      persona: ["Detrás de cada sesión en {negocio} hay alguien que escucha antes de proponer nada."],
-      pregunta: ["¿Cómo te sientes hoy? Cuéntanos y vemos juntos por dónde empezar."],
-      confianza: ["No prometemos resultados de un día para otro. Así trabajamos en {negocio}."]
+      producto: ["Hoy tenemos lugar para tu sesión. Reserva en {negocio} y empieza cuando quieras.", "Hoy tenemos un hueco pensado para ti en {negocio}. Reserva cuando quieras.", "Ese momento que necesitas para ti está disponible esta semana en {negocio}.", "En {negocio} hay espacio para empezar cuando tú decidas."],
+      proceso: ["Un vistazo a cómo acompañamos cada proceso en {negocio}.", "Cada sesión en {negocio} empieza escuchando, no imponiendo un plan.", "Un vistazo a cómo respetamos tu proceso en {negocio}, paso a paso.", "En {negocio} no hay dos procesos iguales, porque no hay dos personas iguales."],
+      persona: ["Detrás de cada sesión en {negocio} hay alguien que escucha antes de proponer nada.", "En {negocio} quien te acompaña escucha antes de proponer nada.", "Hoy te presentamos a quien va a acompañarte en {negocio}.", "Detrás de cada sesión en {negocio} hay alguien que se toma tu proceso en serio."],
+      pregunta: ["¿Cómo te sientes hoy? Cuéntanos y vemos juntos por dónde empezar.", "¿Qué necesitas soltar esta semana? En {negocio} hay espacio para eso.", "¿Cuándo fue la última vez que te dedicaste un rato solo para ti?", "Cuéntanos cómo estás y buscamos contigo por dónde seguir en {negocio}."],
+      confianza: ["No prometemos resultados de un día para otro. Así trabajamos en {negocio}.", "En {negocio} no hay atajos, hay acompañamiento real, sesión a sesión.", "Vamos a tu ritmo, no al que marca un calendario ajeno. Así trabajamos en {negocio}.", "La paciencia también es parte del proceso en {negocio}."]
     }
   },
   profesionales: {
@@ -1016,24 +1081,34 @@ const SECTORES = {
       producto: [
         "Hoy podemos resolver tu consulta en {negocio}",
         "Esto es lo que hacemos en {negocio}",
-        "Un trámite menos en tu lista, hoy mismo"
+        "Un trámite menos en tu lista, hoy mismo",
+        "Eso que llevas posponiendo, hoy se puede resolver",
+        "Una gestión menos de la que preocuparte"
       ],
       proceso: [
         "Así trabajamos cada caso en {negocio}",
-        "Un vistazo a cómo resolvemos tu trámite"
+        "Un vistazo a cómo resolvemos tu trámite",
+        "Ningún caso se gestiona igual que otro en {negocio}",
+        "Así seguimos tu trámite de principio a fin"
       ],
       persona: [
         "Detrás de cada caso hay alguien que lo sigue de cerca",
-        "Hoy te presentamos a quien lleva tu consulta en {negocio}"
+        "Hoy te presentamos a quien lleva tu consulta en {negocio}",
+        "Tu caso lo lleva una persona, no un departamento",
+        "Quien firma tu informe también contesta tus llamadas"
       ],
       pregunta: [
         "¿Qué trámite llevas postergando?",
-        "¿Tienes una duda que nadie te ha sabido explicar bien?"
+        "¿Tienes una duda que nadie te ha sabido explicar bien?",
+        "¿Qué papel llevas semanas sin abrir?",
+        "¿Te han dado alguna vez una respuesta que entendieras de verdad?"
       ],
       confianza: [
         "Llevamos años resolviendo el mismo tipo de casos",
         "En {negocio} no hay letra pequeña",
-        "La tranquilidad de tenerlo todo en regla, sin sorpresas"
+        "La tranquilidad de tenerlo todo en regla, sin sorpresas",
+        "Preferimos explicarte de más que dejarte con dudas",
+        "En {negocio} lo difícil se explica fácil"
       ]
     },
     footers: [
@@ -1047,11 +1122,11 @@ const SECTORES = {
       "Atención también online"
     ],
     captionsByFamily: {
-      producto: ["Hoy podemos ayudarte con eso que llevas postergando. Escríbenos en {negocio}."],
-      proceso: ["Así trabajamos cada caso, paso a paso, en {negocio}."],
-      persona: ["Detrás de cada consulta en {negocio} hay alguien que la sigue de cerca, no un número más."],
-      pregunta: ["¿Qué trámite llevas postergando? Cuéntanos y vemos cómo resolverlo."],
-      confianza: ["En {negocio} no hay letra pequeña. Así trabajamos, siempre."]
+      producto: ["Hoy podemos ayudarte con eso que llevas postergando. Escríbenos en {negocio}.", "Eso que llevas posponiendo se puede resolver hoy mismo en {negocio}.", "Una gestión menos de la que preocuparte. Escríbenos y nos encargamos.", "En {negocio} podemos resolver hoy lo que llevas semanas dejando pasar."],
+      proceso: ["Así trabajamos cada caso, paso a paso, en {negocio}.", "Ningún caso se gestiona igual que otro en {negocio}. Cada situación tiene su propio plan.", "Así seguimos tu trámite de principio a fin en {negocio}, sin dejarte a medias.", "Un vistazo a cómo trabajamos cada consulta antes de darte una respuesta."],
+      persona: ["Detrás de cada consulta en {negocio} hay alguien que la sigue de cerca, no un número más.", "Tu caso lo lleva una persona concreta en {negocio}, no un departamento sin cara.", "Hoy te presentamos a quien va a seguir tu consulta en {negocio}.", "En {negocio} quien firma tu informe es quien te ha estado atendiendo todo el tiempo."],
+      pregunta: ["¿Qué trámite llevas postergando? Cuéntanos y vemos cómo resolverlo.", "¿Qué papel llevas semanas sin abrir? Tráelo a {negocio} y lo revisamos contigo.", "¿Te han dado alguna respuesta que de verdad entendieras? En {negocio} te la damos de forma clara.", "Cuéntanos tu duda, sin compromiso, y te decimos qué opciones tienes."],
+      confianza: ["En {negocio} no hay letra pequeña. Así trabajamos, siempre.", "Preferimos explicarte de más que dejarte con dudas. Así trabajamos en {negocio}.", "En {negocio} lo complicado se explica en palabras que entiendas.", "Años resolviendo casos parecidos al tuyo, con el mismo cuidado de siempre."]
     }
   },
   hogar: {
@@ -1062,25 +1137,35 @@ const SECTORES = {
     openersByFamily: {
       producto: [
         "Hoy tenemos disponibilidad para tu arreglo en {negocio}",
-        "Esto es lo que resolvemos hoy en {negocio}"
+        "Esto es lo que resolvemos hoy en {negocio}",
+        "Ese arreglo pendiente, hoy tiene solución",
+        "Hueco esta semana para lo que necesitas en casa"
       ],
       proceso: [
         "Así dejamos cada trabajo en {negocio}",
         "Un vistazo a cómo trabajamos, paso a paso",
-        "Haz una foto del antes, nosotros nos encargamos del después"
+        "Haz una foto del antes, nosotros nos encargamos del después",
+        "Así dejamos el sitio, como si no hubiéramos estado",
+        "Cada trabajo en {negocio} termina con una revisión final"
       ],
       persona: [
         "Detrás de cada arreglo hay alguien que lo cuida como propio",
-        "Hoy te presentamos a quien trabaja en {negocio}"
+        "Hoy te presentamos a quien trabaja en {negocio}",
+        "Quien va a tu casa de parte de {negocio} la trata como si fuera la suya",
+        "Detrás de cada arreglo hay alguien de confianza, no un desconocido"
       ],
       pregunta: [
         "¿Qué arreglo llevas postergando?",
-        "¿Hay algo en tu casa que necesita una mano?"
+        "¿Hay algo en tu casa que necesita una mano?",
+        "¿Qué llevas aplazando porque \"ya lo harás\"?",
+        "¿Hay algo en casa que chirría, gotea o no cierra bien?"
       ],
       confianza: [
         "Llevamos años haciendo el mismo trabajo, con la misma seriedad",
         "En {negocio} no dejamos nada a medias",
-        "Puntuales, claros, sin sorpresas en la factura"
+        "Puntuales, claros, sin sorpresas en la factura",
+        "Si decimos una hora, es esa hora",
+        "En {negocio} el presupuesto que te damos es el que pagas"
       ]
     },
     footers: [
@@ -1094,11 +1179,11 @@ const SECTORES = {
       "Consulta disponibilidad ahora"
     ],
     captionsByFamily: {
-      producto: ["Hoy tenemos disponibilidad para ese arreglo que llevas postergando. Escríbenos en {negocio}."],
-      proceso: ["Un vistazo a cómo dejamos cada trabajo en {negocio}, antes y después."],
-      persona: ["Detrás de cada arreglo en {negocio} hay alguien que lo trata como si fuera su propia casa."],
-      pregunta: ["¿Qué arreglo llevas postergando? Cuéntanos y te damos presupuesto hoy mismo."],
-      confianza: ["Puntuales, claros y sin sorpresas en la factura. Así trabajamos en {negocio}."]
+      producto: ["Hoy tenemos disponibilidad para ese arreglo que llevas postergando. Escríbenos en {negocio}.", "Ese arreglo pendiente tiene solución hoy. Escríbenos en {negocio}.", "Tenemos hueco esta semana para lo que necesitas en casa.", "En {negocio} podemos mirarlo hoy mismo, sin esperar más."],
+      proceso: ["Un vistazo a cómo dejamos cada trabajo en {negocio}, antes y después.", "Dejamos el sitio como si no hubiéramos estado. Así trabajamos en {negocio}.", "Cada trabajo en {negocio} termina con una revisión antes de irnos.", "Un vistazo al antes y después de un trabajo reciente en {negocio}."],
+      persona: ["Detrás de cada arreglo en {negocio} hay alguien que lo trata como si fuera su propia casa.", "Quien va a tu casa de parte de {negocio} la trata como si fuera la suya.", "Hoy te presentamos a quien se encarga de los trabajos en {negocio}.", "En {negocio} siempre sabes quién va a entrar en tu casa, con la confianza de siempre."],
+      pregunta: ["¿Qué arreglo llevas postergando? Cuéntanos y te damos presupuesto hoy mismo.", "¿Qué llevas aplazando porque \"ya lo harás\"? Hoy es un buen día para hacerlo.", "¿Hay algo en casa que chirría, gotea o no cierra bien? Te lo miramos en {negocio}.", "Cuéntanos qué necesitas arreglar y te decimos cuándo podemos ir."],
+      confianza: ["Puntuales, claros y sin sorpresas en la factura. Así trabajamos en {negocio}.", "Si decimos una hora, es esa hora. Así trabajamos en {negocio}.", "En {negocio} el presupuesto que te damos es el que pagas, sin sorpresas.", "Terminamos lo que empezamos, siempre. Esa es la norma en {negocio}."]
     }
   },
   mascotas: {
@@ -1109,23 +1194,33 @@ const SECTORES = {
     openersByFamily: {
       producto: [
         "Hoy tenemos cita disponible en {negocio}",
-        "Esto es lo que puedes reservar hoy para tu compañero"
+        "Esto es lo que puedes reservar hoy para tu compañero",
+        "Hoy hay hueco para tu compañero en {negocio}",
+        "Esa revisión pendiente, hoy se puede hacer"
       ],
       proceso: [
         "Así cuidamos a cada mascota que pasa por {negocio}",
-        "Un vistazo a cómo trabajamos en {negocio}"
+        "Un vistazo a cómo trabajamos en {negocio}",
+        "Así tratamos a cada mascota que entra por la puerta de {negocio}",
+        "Con calma, sin prisas, así trabajamos en {negocio}"
       ],
       persona: [
         "Detrás de cada visita hay alguien que los trata con cariño de verdad",
-        "Hoy te presentamos a quien cuida a tu compañero en {negocio}"
+        "Hoy te presentamos a quien cuida a tu compañero en {negocio}",
+        "Quien atiende en {negocio} también tiene una mascota en casa",
+        "Detrás de cada visita hay alguien a quien también le importa de verdad"
       ],
       pregunta: [
         "¿Cómo se llama tu compañero?",
-        "¿Hace cuánto no le haces una revisión?"
+        "¿Hace cuánto no le haces una revisión?",
+        "¿Cómo ha estado tu compañero esta semana?",
+        "¿Le toca ya alguna vacuna o revisión?"
       ],
       confianza: [
         "Llevamos tiempo cuidando mascotas como si fueran propias",
-        "En {negocio} cada visita es con el mismo cariño"
+        "En {negocio} cada visita es con el mismo cariño",
+        "En {negocio} no hay prisa cuando se trata de ellos",
+        "Los tratamos como si fueran nuestros, siempre"
       ]
     },
     footers: [
@@ -1139,11 +1234,11 @@ const SECTORES = {
       "Atención también los fines de semana"
     ],
     captionsByFamily: {
-      producto: ["Hoy tenemos cita disponible para tu compañero. Reserva en {negocio}."],
-      proceso: ["Un vistazo a cómo cuidamos a cada mascota que pasa por {negocio}."],
-      persona: ["Detrás de cada visita en {negocio} hay alguien que trata a tu mascota como propia."],
-      pregunta: ["¿Hace cuánto no le haces una revisión? En {negocio} tenemos hueco esta semana."],
-      confianza: ["Cuidamos a cada mascota que pasa por {negocio} con el mismo cariño, siempre."]
+      producto: ["Hoy tenemos cita disponible para tu compañero. Reserva en {negocio}.", "Hoy tenemos hueco para tu compañero en {negocio}. Reserva su cita.", "Esa revisión pendiente se puede hacer hoy mismo en {negocio}.", "En {negocio} tenemos espacio esta semana para cuidar de tu mascota."],
+      proceso: ["Un vistazo a cómo cuidamos a cada mascota que pasa por {negocio}.", "Así tratamos a cada mascota que entra por la puerta de {negocio}.", "Con calma y sin prisas, así trabajamos en {negocio}, siempre.", "Un vistazo a cómo cuidamos de los que más quieres en {negocio}."],
+      persona: ["Detrás de cada visita en {negocio} hay alguien que trata a tu mascota como propia.", "Quien atiende en {negocio} también tiene una mascota en casa, y se nota.", "Hoy te presentamos a quien cuida de tu compañero en {negocio}.", "En {negocio} tratamos a cada mascota con el mismo cariño que a la nuestra."],
+      pregunta: ["¿Hace cuánto no le haces una revisión? En {negocio} tenemos hueco esta semana.", "¿Cómo ha estado tu compañero esta semana? Cuéntanoslo.", "¿Le toca ya alguna vacuna o revisión? En {negocio} te lo recordamos.", "Preséntanos a tu compañero en los comentarios, nos encanta conocerlos."],
+      confianza: ["Cuidamos a cada mascota que pasa por {negocio} con el mismo cariño, siempre.", "En {negocio} no hay prisa cuando se trata de ellos. Nunca la hay.", "Los tratamos como si fueran nuestros, siempre, cita tras cita.", "Años cuidando mascotas con el mismo cariño del primer día."]
     }
   },
   educacion: {
@@ -1154,23 +1249,33 @@ const SECTORES = {
     openersByFamily: {
       producto: [
         "Hoy tenemos plazas disponibles en {negocio}",
-        "Esto es lo que puedes empezar hoy en {negocio}"
+        "Esto es lo que puedes empezar hoy en {negocio}",
+        "Hoy es un buen día para retomarlo",
+        "Todavía hay plazas para este grupo en {negocio}"
       ],
       proceso: [
         "Así trabajamos cada clase en {negocio}",
-        "Un vistazo a cómo enseñamos en {negocio}"
+        "Un vistazo a cómo enseñamos en {negocio}",
+        "Cada clase en {negocio} se adapta a quien la recibe",
+        "Así preparamos cada sesión antes de que llegues"
       ],
       persona: [
         "Detrás de cada clase hay alguien que se toma tu progreso en serio",
-        "Hoy te presentamos a quien enseña en {negocio}"
+        "Hoy te presentamos a quien enseña en {negocio}",
+        "Quien enseña en {negocio} también recuerda lo que costaba aprender",
+        "Detrás de cada clase hay alguien que se alegra con tus avances"
       ],
       pregunta: [
         "¿Qué es lo que más te cuesta?",
-        "¿Hace cuánto quieres retomar esto?"
+        "¿Hace cuánto quieres retomar esto?",
+        "¿Qué llevas queriendo aprender desde hace tiempo?",
+        "¿Te preparas para algo concreto o quieres aprender sin más?"
       ],
       confianza: [
         "Llevamos tiempo enseñando de la misma manera, con los mismos resultados",
-        "En {negocio} nadie se queda con la duda"
+        "En {negocio} nadie se queda con la duda",
+        "En {negocio} las preguntas no se dejan para después",
+        "Preferimos ir despacio y que quede claro, no rápido y a medias"
       ]
     },
     footers: [
@@ -1184,11 +1289,11 @@ const SECTORES = {
       "Primera clase sin compromiso"
     ],
     captionsByFamily: {
-      producto: ["Hoy tenemos plazas disponibles. Escríbenos y empieza cuando quieras en {negocio}."],
-      proceso: ["Un vistazo a cómo trabajamos cada clase en {negocio}."],
-      persona: ["Detrás de cada clase en {negocio} hay alguien que se toma tu progreso en serio."],
-      pregunta: ["¿Qué es lo que más te cuesta? Cuéntanos y armamos un plan para ti."],
-      confianza: ["Enseñamos de la misma manera desde siempre, y los resultados se notan. Así es {negocio}."]
+      producto: ["Hoy tenemos plazas disponibles. Escríbenos y empieza cuando quieras en {negocio}.", "Hoy es un buen día para retomar lo que dejaste a medias. Empieza en {negocio}.", "Todavía quedan plazas para este grupo en {negocio}. Escríbenos.", "En {negocio} puedes empezar cuando tú decidas, sin esperar a septiembre."],
+      proceso: ["Un vistazo a cómo trabajamos cada clase en {negocio}.", "Cada clase en {negocio} se adapta a quien la recibe, no al revés.", "Un vistazo a cómo preparamos cada sesión antes de que llegues a {negocio}.", "En {negocio} no repetimos el mismo temario para todos: cada avance es distinto."],
+      persona: ["Detrás de cada clase en {negocio} hay alguien que se toma tu progreso en serio.", "Quien enseña en {negocio} también recuerda lo difícil que puede ser al principio.", "Hoy te presentamos a quien va a acompañarte en {negocio}.", "En {negocio} también celebramos cada uno de tus avances."],
+      pregunta: ["¿Qué es lo que más te cuesta? Cuéntanos y armamos un plan para ti.", "¿Qué llevas queriendo aprender desde hace tiempo? En {negocio} puedes empezar ya.", "¿Te preparas para algo concreto? Cuéntanos y armamos un plan contigo.", "Cuéntanos qué es lo que más se te resiste, seguro que tiene solución."],
+      confianza: ["Enseñamos de la misma manera desde siempre, y los resultados se notan. Así es {negocio}.", "En {negocio} las preguntas no se dejan para después, se resuelven ahí mismo.", "Preferimos ir despacio y que quede claro, no rápido y a medias.", "Los mismos resultados de siempre, porque no cambiamos lo que funciona."]
     }
   },
   automocion: {
@@ -1199,23 +1304,33 @@ const SECTORES = {
     openersByFamily: {
       producto: [
         "Hoy tenemos lugar para revisar tu coche en {negocio}",
-        "Esto es lo que resolvemos hoy en {negocio}"
+        "Esto es lo que resolvemos hoy en {negocio}",
+        "Ese ruido raro tiene solución hoy en {negocio}",
+        "Hueco disponible para tu coche esta semana"
       ],
       proceso: [
         "Así revisamos cada coche que entra a {negocio}",
-        "Un vistazo a cómo trabajamos en {negocio}"
+        "Un vistazo a cómo trabajamos en {negocio}",
+        "Así revisamos tu coche, sin prisas y sin dar nada por hecho",
+        "Cada pieza que cambiamos, te la enseñamos"
       ],
       persona: [
         "Detrás de cada revisión hay alguien que lo trata como propio",
-        "Hoy te presentamos a quien trabaja en {negocio}"
+        "Hoy te presentamos a quien trabaja en {negocio}",
+        "Quien revisa tu coche en {negocio} también trae aquí el suyo",
+        "Detrás de cada diagnóstico hay alguien que no te va a engañar"
       ],
       pregunta: [
         "¿Hace cuánto no le haces una revisión a tu coche?",
-        "¿Ese ruido raro sigue ahí?"
+        "¿Ese ruido raro sigue ahí?",
+        "¿La ITV te pilla cerca y todavía no has revisado el coche?",
+        "¿Notas algo raro al frenar o al arrancar?"
       ],
       confianza: [
         "Llevamos años revisando coches con el mismo cuidado",
-        "En {negocio} el diagnóstico siempre es honesto"
+        "En {negocio} el diagnóstico siempre es honesto",
+        "Si no hace falta cambiarlo, no te lo cambiamos",
+        "En {negocio} te explicamos el porqué, no solo el precio"
       ]
     },
     footers: [
@@ -1229,11 +1344,11 @@ const SECTORES = {
       "Consulta sin compromiso"
     ],
     captionsByFamily: {
-      producto: ["Hoy tenemos lugar para revisar tu coche. Pide cita en {negocio}."],
-      proceso: ["Un vistazo a cómo revisamos cada coche que entra a {negocio}."],
-      persona: ["Detrás de cada revisión en {negocio} hay alguien que trata tu coche como propio."],
-      pregunta: ["¿Ese ruido raro sigue ahí? En {negocio} lo revisamos hoy mismo."],
-      confianza: ["El diagnóstico siempre es honesto en {negocio}, sin vender de más."]
+      producto: ["Hoy tenemos lugar para revisar tu coche. Pide cita en {negocio}.", "Ese ruido raro tiene solución hoy. Tráelo a {negocio}.", "Tenemos hueco para tu coche esta semana en {negocio}.", "En {negocio} podemos revisarlo hoy mismo, sin esperar días."],
+      proceso: ["Un vistazo a cómo revisamos cada coche que entra a {negocio}.", "Así revisamos tu coche en {negocio}, sin prisas y sin dar nada por hecho.", "Cada pieza que cambiamos en {negocio} te la enseñamos, para que veas por qué.", "Un vistazo al taller de {negocio} mientras trabajamos en tu coche."],
+      persona: ["Detrás de cada revisión en {negocio} hay alguien que trata tu coche como propio.", "Quien revisa tu coche en {negocio} también trae aquí el suyo. Así de en serio nos lo tomamos.", "Hoy te presentamos a quien va a revisar tu coche en {negocio}.", "En {negocio} el mecánico que te atiende es el mismo que firma el trabajo."],
+      pregunta: ["¿Ese ruido raro sigue ahí? En {negocio} lo revisamos hoy mismo.", "¿La ITV te pilla cerca? En {negocio} te lo dejamos listo a tiempo.", "¿Notas algo raro al frenar o al arrancar? Tráelo y lo miramos.", "Cuéntanos qué notas raro en el coche, seguro que tiene explicación."],
+      confianza: ["El diagnóstico siempre es honesto en {negocio}, sin vender de más.", "Si no hace falta cambiarlo, no te lo cambiamos. Así trabajamos en {negocio}.", "En {negocio} te explicamos el porqué de cada arreglo, no solo el precio.", "Años revisando coches con el mismo criterio: honestidad primero."]
     }
   },
   eventos: {
@@ -1244,23 +1359,33 @@ const SECTORES = {
     openersByFamily: {
       producto: [
         "Hoy tenemos fechas disponibles en {negocio}",
-        "Esto es lo que puedes reservar hoy en {negocio}"
+        "Esto es lo que puedes reservar hoy en {negocio}",
+        "Todavía quedan fechas libres este trimestre en {negocio}",
+        "Ese día que tienes en mente, hablemos de él"
       ],
       proceso: [
         "Así preparamos cada detalle en {negocio}",
-        "Un vistazo a cómo armamos cada proyecto"
+        "Un vistazo a cómo armamos cada proyecto",
+        "Cada proyecto en {negocio} empieza mucho antes del gran día",
+        "Así se ve el trabajo detrás de un evento que sale bien"
       ],
       persona: [
         "Detrás de cada evento hay alguien que cuida cada detalle",
-        "Hoy te presentamos a quien está detrás de {negocio}"
+        "Hoy te presentamos a quien está detrás de {negocio}",
+        "Quien organiza tu evento en {negocio} no improvisa nada",
+        "Detrás de cada foto hay alguien buscando el ángulo perfecto"
       ],
       pregunta: [
         "¿Qué fecha tienes en mente?",
-        "¿Cómo te imaginas ese día?"
+        "¿Cómo te imaginas ese día?",
+        "¿Qué estilo tienes en mente para tu evento?",
+        "¿A cuántas personas estáis pensando invitar?"
       ],
       confianza: [
         "Llevamos tiempo cuidando los mismos detalles, proyecto a proyecto",
-        "En {negocio} nada queda librado al azar"
+        "En {negocio} nada queda librado al azar",
+        "En {negocio} el plan B ya está pensado antes de que haga falta",
+        "No prometemos perfección; prometemos estar encima de cada detalle"
       ]
     },
     footers: [
@@ -1274,11 +1399,11 @@ const SECTORES = {
       "Primera reunión sin compromiso"
     ],
     captionsByFamily: {
-      producto: ["Hoy tenemos fechas disponibles. Escríbenos y reserva la tuya en {negocio}."],
-      proceso: ["Un vistazo a cómo preparamos cada detalle en {negocio}."],
-      persona: ["Detrás de cada evento en {negocio} hay alguien que cuida cada detalle, incluso los que no se ven."],
-      pregunta: ["¿Cómo te imaginas ese día? Cuéntanos y lo hacemos realidad."],
-      confianza: ["En {negocio} nada queda librado al azar. Proyecto a proyecto, siempre igual de cuidado."]
+      producto: ["Hoy tenemos fechas disponibles. Escríbenos y reserva la tuya en {negocio}.", "Todavía quedan fechas libres este trimestre. Reserva la tuya en {negocio}.", "Ese día que tienes en mente, hablémoslo. Escríbenos en {negocio}.", "En {negocio} hay hueco en la agenda para tu proyecto."],
+      proceso: ["Un vistazo a cómo preparamos cada detalle en {negocio}.", "Cada proyecto en {negocio} empieza mucho antes del día en sí.", "Así se ve el trabajo detrás de un evento que sale bien, sin imprevistos.", "Un vistazo a cómo preparamos cada detalle en {negocio}, semanas antes."],
+      persona: ["Detrás de cada evento en {negocio} hay alguien que cuida cada detalle, incluso los que no se ven.", "Quien organiza tu evento en {negocio} no deja nada a la improvisación.", "Hoy te presentamos a quien está detrás de cada proyecto en {negocio}.", "En {negocio} cada detalle pasa por alguien que lo piensa dos veces."],
+      pregunta: ["¿Cómo te imaginas ese día? Cuéntanos y lo hacemos realidad.", "¿Qué estilo tienes en mente? Cuéntanos y lo construimos contigo en {negocio}.", "¿A cuántas personas estáis pensando invitar? Nos ayuda a planificar mejor.", "Cuéntanos cómo te imaginas ese día, el resto lo hacemos nosotros."],
+      confianza: ["En {negocio} nada queda librado al azar. Proyecto a proyecto, siempre igual de cuidado.", "En {negocio} el plan B ya está pensado antes de que haga falta.", "No prometemos perfección; prometemos estar encima de cada detalle. Así es {negocio}.", "Proyecto a proyecto, con el mismo cuidado que el primer día."]
     }
   },
   general: {
@@ -1288,23 +1413,33 @@ const SECTORES = {
     openersByFamily: {
       producto: [
         "Hoy tenemos algo para ti en {negocio}",
-        "Esto es lo nuevo en {negocio}"
+        "Esto es lo nuevo en {negocio}",
+        "Hoy tenemos algo que enseñarte en {negocio}",
+        "Esto es lo que te espera hoy en {negocio}"
       ],
       proceso: [
         "Un vistazo a cómo trabajamos en {negocio}",
-        "Así preparamos lo que hoy te mostramos"
+        "Así preparamos lo que hoy te mostramos",
+        "Así es como trabajamos cada día en {negocio}",
+        "Un poco de lo que pasa antes de que lo veas"
       ],
       persona: [
         "Detrás de {negocio} hay alguien que se toma esto en serio",
-        "Hoy te presentamos a quien está detrás de {negocio}"
+        "Hoy te presentamos a quien está detrás de {negocio}",
+        "Detrás de {negocio} hay una persona, no una empresa sin cara",
+        "Quien está detrás de {negocio} también lee tus mensajes"
       ],
       pregunta: [
         "¿Qué te gustaría ver más por aquí?",
-        "¿Hace cuánto no pasas por {negocio}?"
+        "¿Hace cuánto no pasas por {negocio}?",
+        "¿Qué es lo que más te gusta de {negocio}?",
+        "¿Hay algo que te gustaría que hiciéramos y todavía no hacemos?"
       ],
       confianza: [
         "Llevamos tiempo haciendo las cosas de la misma manera",
-        "En {negocio} cada cliente importa de verdad"
+        "En {negocio} cada cliente importa de verdad",
+        "En {negocio} las cosas se hacen bien, no rápido",
+        "Seguimos aquí por quienes vuelven, no por quienes solo pasan una vez"
       ]
     },
     footers: [
@@ -1318,11 +1453,11 @@ const SECTORES = {
       "Consulta sin compromiso"
     ],
     captionsByFamily: {
-      producto: ["Hoy tenemos algo nuevo para ti. Escríbenos y te contamos más sobre {negocio}."],
-      proceso: ["Un vistazo a cómo trabajamos cada día en {negocio}."],
-      persona: ["Detrás de {negocio} hay alguien que se toma esto en serio, todos los días."],
-      pregunta: ["¿Qué te gustaría ver más por aquí? Te leemos."],
-      confianza: ["Seguimos haciendo las cosas de la misma manera en {negocio}, con el mismo cuidado de siempre."]
+      producto: ["Hoy tenemos algo nuevo para ti. Escríbenos y te contamos más sobre {negocio}.", "Hoy tenemos algo que enseñarte en {negocio}. Pásate a verlo.", "Esto es lo que te espera hoy en {negocio}. Escríbenos si tienes dudas.", "En {negocio} siempre hay algo nuevo que contarte."],
+      proceso: ["Un vistazo a cómo trabajamos cada día en {negocio}.", "Así es como trabajamos cada día en {negocio}, con el mismo cuidado.", "Un poco de lo que pasa antes de que veas el resultado final.", "Un vistazo a cómo hacemos las cosas en {negocio}."],
+      persona: ["Detrás de {negocio} hay alguien que se toma esto en serio, todos los días.", "Detrás de {negocio} hay una persona real, no una empresa sin cara.", "Hoy te presentamos a quien está detrás de {negocio}.", "En {negocio} quien contesta tus mensajes es quien de verdad se encarga de todo."],
+      pregunta: ["¿Qué te gustaría ver más por aquí? Te leemos.", "¿Qué es lo que más te gusta de {negocio}? Nos ayuda a mejorar.", "¿Hay algo que te gustaría que hiciéramos? Cuéntanoslo.", "Te leemos en los comentarios, cuéntanos qué se te ocurre."],
+      confianza: ["Seguimos haciendo las cosas de la misma manera en {negocio}, con el mismo cuidado de siempre.", "En {negocio} preferimos hacer las cosas bien, no rápido.", "Seguimos aquí por quienes vuelven, no solo por quienes pasan una vez. Así es {negocio}.", "Cada cliente que confía en {negocio} es la razón por la que seguimos haciendo esto."]
     }
   }
 };
@@ -2145,7 +2280,8 @@ const reelState = {
   recordingMaxSeconds: REEL_ABSOLUTE_MAX_SECONDS,
   cameraReady: false,
   facingMode: 'user',
-  actualDurationSeconds: 0
+  actualDurationSeconds: 0,
+  counting: false
 };
 
 const reelOverlay = document.getElementById('reelOverlay');
@@ -2564,9 +2700,42 @@ document.getElementById('reelRetryPermissionBtn').addEventListener('click', star
 document.getElementById('reelRetakeBtn').addEventListener('click', retakeReel);
 document.getElementById('reelDownloadBtn').addEventListener('click', downloadReelVideo);
 reelFlipBtn.addEventListener('click', flipReelCamera);
+const reelCountdown = document.getElementById('reelCountdown');
+const reelCountdownNum = document.getElementById('reelCountdownNum');
+
+// Cuenta atrás 3-2-1 antes de grabar de verdad: así el "prepararme,
+// carraspear, colocarme" pasa ANTES de que se grabe nada, en vez de
+// quedar pillado al principio del vídeo.
+function startReelCountdown() {
+  if (reelState.recording || reelState.counting) return;
+  reelState.counting = true;
+  reelRecordBtn.disabled = true;
+  let n = 3;
+  reelCountdown.classList.add('is-visible');
+  reelCountdownNum.textContent = n;
+  reelHint.textContent = 'Prepárate…';
+  const step = () => {
+    n--;
+    if (n > 0) {
+      // reiniciar la animación
+      reelCountdownNum.style.animation = 'none';
+      reelCountdownNum.offsetHeight; // forzar reflow
+      reelCountdownNum.style.animation = '';
+      reelCountdownNum.textContent = n;
+      setTimeout(step, 800);
+    } else {
+      reelCountdown.classList.remove('is-visible');
+      reelState.counting = false;
+      reelRecordBtn.disabled = false;
+      startReelRecording();
+    }
+  };
+  setTimeout(step, 800);
+}
+
 reelRecordBtn.addEventListener('click', () => {
-  if (!reelState.recording) startReelRecording();
-  else finishReelRecording();
+  if (reelState.recording) finishReelRecording();
+  else startReelCountdown();
 });
 // Si el usuario sale de la pestaña/app a mitad de grabación, cortamos en
 // seco para no dejar la cámara encendida
